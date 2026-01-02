@@ -1,6 +1,62 @@
-import { MessageFlags, SlashCommandBuilder } from "discord.js";
+import { type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../classes/slash_command";
+import type Logger from "../utils/logger";
 import { GHOST_TYPES } from "../utils/data";
+import { prisma } from "../utils/prisma";
+
+async function handleCreate(logger: Logger, interaction: ChatInputCommandInteraction) {
+    const { options, user, guildId } = interaction;
+
+    if (!guildId) return;
+
+    await interaction.deferReply({
+        flags: MessageFlags.Ephemeral,
+    });
+
+    const goal = options.getInteger('goal', true);
+    const restrictions = options.getInteger('restrictions', false) ?? 2;
+
+    const inSession = await prisma.session.findFirst({
+        where: {
+            guild: guildId,
+            startedAt: {
+                not: null,
+            },
+            finished: false,
+            members: {
+                some: {
+                    userId: user.id,
+                }
+            },
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    if (inSession) {
+        return interaction.editReply({
+            content: `You're already in an active session on this guild.\n-# session id: \`${inSession.id}\``,
+        });
+    }
+
+    const session = await prisma.session.create({
+        data: {
+            guild: guildId,
+            successfulRounds: 0,
+            goal,
+            restrictionsPerRound: restrictions,
+        },
+    });
+
+    await prisma.sessionMember.create({
+        data: {
+            userId: user.id,
+            isLeader: true,
+            sessionId: session.id,
+        }
+    });
+}
 
 export default new SlashCommand({
     name: 'session',
@@ -86,7 +142,7 @@ export default new SlashCommand({
             )
         )
         .addSubcommandGroup(g =>
-            g.setName('high scores')
+            g.setName('high_scores')
             .setDescription('Show best results and relevant data')
             .addSubcommand(c =>
                 c.setName('unavailable')
@@ -94,6 +150,19 @@ export default new SlashCommand({
             )
         ),
     callback: async (logger, client, interaction) => {
+        const command = interaction.options.getSubcommand(),
+            commandGroup = interaction.options.getSubcommandGroup() as 'handle' | 'round' | 'high_scores';
+
+        if (commandGroup === 'handle') {
+            if (command === 'create') {
+                handleCreate(logger, interaction);
+                return 
+            }
+        }
+
+        interaction.reply({
+            content: `command ${commandGroup} ${command} is not set up`,
+        });
     },
     autocomplete: async (logger, client, interaction) => {
         const { options } = interaction;
