@@ -94,6 +94,21 @@ export default new SlashCommand({
             )
         ),
     callback: async (logger, client, interaction) => {
-        logger.success('Successfully received usage of /session from discord API');
+    },
+    autocomplete: async (logger, client, interaction) => {
+        const { options } = interaction;
+        const focusedOption = options.getFocused(true);
+
+        if (focusedOption.name === 'ghost') {
+            const filtered = GHOST_TYPES
+                .filter(ghost =>
+                    ghost.toLowerCase().startsWith(focusedOption.value.toLowerCase())
+                )
+                .slice(0, 25);
+
+            await interaction.respond(
+                filtered.map(setting => ({ name: setting, value: setting }))
+            );
+        }
     },
 });
