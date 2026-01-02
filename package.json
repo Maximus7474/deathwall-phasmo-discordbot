@@ -1,0 +1,41 @@
+{
+  "name": "discord-ts-boilerplate",
+  "version": "2.4.2",
+  "description": "Discord bot built in TypeScript using discord.js",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "lint": "eslint src/**/*.ts",
+    "clear-commands": "node scripts/register_commands.js --clear-commands",
+    "build": "node scripts/build.js",
+    "deploy": "node scripts/register_commands.js",
+    "dev-deploy": "npm run build && npm run deploy",
+    "start": "node dist/index.js",
+    "prisma": "prisma"
+  },
+  "keywords": [
+    "discordbot",
+    "discord.js",
+    "typescript"
+  ],
+  "author": "Maximus7474",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "6.15.0",
+    "colors": "^1.4.0",
+    "discord.js": "^14.20.0",
+    "dotenv": "^16.5.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "@types/node": "^22.15.32",
+    "eslint": "^9.29.0",
+    "nodemon": "^3.1.10",
+    "prisma": "^6.15.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.1"
+  }
+}
