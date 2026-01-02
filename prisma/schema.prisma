@@ -50,6 +50,8 @@ model Restriction {
 }
 
 model SessionRestriction {
+  number        Int
+  selected      Boolean      @default(false)
   sessionId     String
   session       Session     @relation(fields: [sessionId], references: [id])
   restrictionId String
