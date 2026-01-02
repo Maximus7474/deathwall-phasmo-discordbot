@@ -13,8 +13,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model fav_food {
-  discord_id     String  @id @unique
-  favourite_food String
-  custom_choice  Boolean @default(false)
+model Session {
+  id               String              @id @default(cuid())
+  guild            String
+  successfulRounds Int
+  goal             Int
+  finished         Boolean             @default(false)
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  
+  // Relations
+  members          SessionMember[]
+  restrictions     SessionRestriction[]
+}
+
+model SessionMember {
+  id       String  @id @default(cuid())
+  userId   String
+  isLeader Boolean @default(false)
+  
+  // Relation to Session
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id])
+}
+
+model Restriction {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  occurences  Int
+  addedBy     String
+  addedAt     DateTime @default(now())
+
+  // Relation to join table
+  sessions    SessionRestriction[]
+}
+
+model SessionRestriction {
+  sessionId     String
+  session       Session     @relation(fields: [sessionId], references: [id])
+  restrictionId String
+  restriction   Restriction @relation(fields: [restrictionId], references: [id])
+
+  @@id([sessionId, restrictionId])
 }
