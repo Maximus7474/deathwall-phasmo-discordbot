@@ -14,17 +14,18 @@ datasource db {
 }
 
 model Session {
-  id               String              @id @default(cuid())
-  guild            String
-  successfulRounds Int
-  goal             Int
-  finished         Boolean             @default(false)
-  startedAt        DateTime?
-  finishedAt       DateTime?
+  id                    String              @id @default(cuid())
+  guild                 String
+  successfulRounds      Int
+  goal                  Int
+  restrictionsPerRound  Int                 @default(2)
+  finished              Boolean             @default(false)
+  startedAt             DateTime?
+  finishedAt            DateTime?
   
   // Relations
-  members          SessionMember[]
-  restrictions     SessionRestriction[]
+  members               SessionMember[]
+  restrictions          SessionRestriction[]
 }
 
 model SessionMember {
