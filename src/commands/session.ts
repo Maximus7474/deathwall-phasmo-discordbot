@@ -58,6 +58,65 @@ async function handleCreate(logger: Logger, interaction: ChatInputCommandInterac
     });
 }
 
+async function handleInviteUser(logger: Logger, interaction: ChatInputCommandInteraction) {
+    const { options, user, guildId } = interaction;
+
+    if (!guildId) return;
+
+    await interaction.deferReply({
+        flags: MessageFlags.Ephemeral,
+    });
+    
+    const invitee = options.getUser('user', true);
+
+    const session = await prisma.session.findFirst({
+        where: {
+            guild: guildId,
+            startedAt: null,
+            finished: false,
+            members: {
+                some: {
+                    userId: user.id,
+                    isLeader: true,
+                }
+            },
+        },
+    });
+
+    if (!session) {
+        return interaction.editReply({
+            content: `You're not leading a session in this guild, you can not invite people to it.`,
+        });
+    }
+
+    const isListed = await prisma.sessionMember.findFirst({
+        where: {
+            session: {
+                guild: guildId,
+            },
+            userId: invitee.id,
+        },
+    });
+
+    if (isListed) {
+        return interaction.editReply({
+            content: `User ${user.displayName} is already in a session on this guild, he can not be invited to this one.`,
+        });
+    }
+
+    await prisma.sessionMember.create({
+        data: {
+            userId: invitee.id,
+            isLeader: false,
+            sessionId: session.id,
+        }
+    });
+
+    interaction.editReply({
+        content: `User ${user.displayName} was added to the session.`
+    });
+}
+
 export default new SlashCommand({
     name: 'session',
     guildSpecific: true,
@@ -157,6 +216,9 @@ export default new SlashCommand({
             if (command === 'create') {
                 handleCreate(logger, interaction);
                 return 
+            } else if (command === 'invite') {
+                handleInviteUser(logger, interaction);
+                return;
             }
         }
 
