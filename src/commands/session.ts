@@ -117,6 +117,64 @@ async function handleInviteUser(logger: Logger, interaction: ChatInputCommandInt
     });
 }
 
+async function handleRemoveUser(logger: Logger, interaction: ChatInputCommandInteraction) {
+    const { options, user, guildId } = interaction;
+
+    if (!guildId) return;
+
+    await interaction.deferReply({
+        flags: MessageFlags.Ephemeral,
+    });
+    
+    const removee = options.getUser('user', true);
+
+    const session = await prisma.session.findFirst({
+        where: {
+            guild: guildId,
+            startedAt: null,
+            finished: false,
+            members: {
+                some: {
+                    userId: user.id,
+                    isLeader: true,
+                }
+            },
+        },
+    });
+
+    if (!session) {
+        return interaction.editReply({
+            content: `You're not leading a session in this guild, you can not remove people from one.`,
+        });
+    }
+
+    const isListed = await prisma.sessionMember.findFirst({
+        where: {
+            session: {
+                guild: guildId,
+                id: session.id,
+            },
+            userId: removee.id,
+        },
+    });
+
+    if (!isListed) {
+        return interaction.editReply({
+            content: `User ${user.displayName} is not in your session.`,
+        });
+    }
+
+    await prisma.sessionMember.delete({
+        where: {
+            id: isListed.id,
+        }
+    });
+
+    interaction.editReply({
+        content: `User ${user.displayName} was removed from the session.`
+    });
+}
+
 export default new SlashCommand({
     name: 'session',
     guildSpecific: true,
@@ -218,6 +276,9 @@ export default new SlashCommand({
                 return 
             } else if (command === 'invite') {
                 handleInviteUser(logger, interaction);
+                return;
+            } else if (command === 'remove') {
+                handleRemoveUser(logger, interaction);
                 return;
             }
         }
