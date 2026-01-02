@@ -28,10 +28,24 @@ model Session {
   restrictions          SessionRestriction[]
 }
 
+model SessionRound {
+  id                    String              @id @default(cuid())
+  ghostType             String?
+  won                   Boolean             @default(false)
+  
+  startedById String
+  startedBy   SessionMember @relation("RoundsStartedBy", fields: [startedById], references: [id])
+
+  startedAt             DateTime            @default(now())
+  finishedAt            DateTime?
+}
+
 model SessionMember {
   id       String  @id @default(cuid())
   userId   String
   isLeader Boolean @default(false)
+
+  roundsStarted SessionRound[] @relation("RoundsStartedBy")
   
   // Relation to Session
   sessionId String
