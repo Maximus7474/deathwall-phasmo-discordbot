@@ -1,4 +1,4 @@
-import { type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from "discord.js";
+import { type ChatInputCommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
 import { GHOST_TYPES } from "../utils/data";
@@ -176,7 +176,63 @@ async function handleRemoveUser(logger: Logger, interaction: ChatInputCommandInt
 }
 
 async function handleListUsers(logger: Logger, interaction: ChatInputCommandInteraction) {
-    
+    const { options, user, guildId } = interaction;
+
+    if (!guildId) return;
+
+    const ephemeral = options.getBoolean('ephemeral', false) ?? false;
+
+    await interaction.deferReply({
+        flags: ephemeral
+            ? MessageFlags.Ephemeral
+            : [],
+    });
+
+    const session = await prisma.session.findFirst({
+        where: {
+            guild: guildId,
+            finished: false,
+            members: {
+                some: {
+                    userId: user.id,
+                    isLeader: true,
+                }
+            },
+        },
+        select: {
+            members: true,
+            id: true,
+            startedAt: true,
+            goal: true,
+            successfulRounds: true,
+            restrictionsPerRound: true,
+        },
+    });
+
+    if (!session) {
+        return interaction.editReply({
+            content: `You're not in a session in this guild.`,
+        });
+    }
+
+    const embed = new EmbedBuilder()
+        .setTitle('Session members')
+        .setDescription(
+            `Start: ${session.startedAt ? `<t:${Math.floor(session.startedAt.getTime() / 1000)}>` : 'not started'}\n`+
+            `Progress: ${session.successfulRounds}/${session.goal}\n`+
+            `New restrictions per round: ${session.restrictionsPerRound}`
+        )
+        .setFields({
+            name: 'Members',
+            value: session.members
+                .map(m => `* ${m.isLeader ? ':cook:' : ''}<@${m.userId}>`)
+                .join('\n'),
+            inline: true
+        });
+
+    await interaction.editReply({
+        embeds: [embed],
+    });
 }
 
 async function handleStartSession(logger: Logger, interaction: ChatInputCommandInteraction) {
@@ -309,7 +365,10 @@ export default new SlashCommand({
             } else if (command === 'remove') {
                 handleRemoveUser(logger, interaction);
                 return;
-            }
+            } else if (command === 'users') {
+                handleListUsers(logger, interaction);
+                return;
+            } 
         }
 
         interaction.reply({
