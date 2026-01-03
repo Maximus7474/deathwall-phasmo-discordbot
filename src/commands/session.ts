@@ -175,6 +175,30 @@ async function handleRemoveUser(logger: Logger, interaction: ChatInputCommandInt
     });
 }
 
+async function handleListUsers(logger: Logger, interaction: ChatInputCommandInteraction) {
+    
+}
+
+async function handleStartSession(logger: Logger, interaction: ChatInputCommandInteraction) {
+    
+}
+
+async function handleEndSession(logger: Logger, interaction: ChatInputCommandInteraction) {
+    
+}
+
+async function handleNewRound(logger: Logger, interaction: ChatInputCommandInteraction) {
+    
+}
+
+async function handleEndRound(logger: Logger, interaction: ChatInputCommandInteraction) {
+    
+}
+
+async function handleRestrictions(logger: Logger, interaction: ChatInputCommandInteraction) {
+    
+}
+
 export default new SlashCommand({
     name: 'session',
     guildSpecific: true,
@@ -222,6 +246,11 @@ export default new SlashCommand({
             .addSubcommand(c =>
                 c.setName('users')
                 .setDescription('List the current users of a session')
+                .addBooleanOption(o =>
+                    o.setName('ephemeral')
+                    .setDescription('Show the list to all users in a channel (default: True)')
+                    .setRequired(false)
+                )
             )
             .addSubcommand(c =>
                 c.setName('start')
