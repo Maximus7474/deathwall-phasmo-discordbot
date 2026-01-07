@@ -413,6 +413,7 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
     const roundStarter = await selectRestrictions(session.id, session.restrictionsPerRound);
 
     if (!roundStarter.success) {
+        logger.error(`StartSession, unable to generate restrictions for first round: "${roundStarter.message}"`);
         return interaction.editReply({
             content: `Unable to generate restrictions for first round:\n> \`${roundStarter.message}\``,
         });
