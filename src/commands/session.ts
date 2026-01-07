@@ -521,11 +521,77 @@ async function handleEndSession(logger: Logger, interaction: ChatInputCommandInt
     });
 }
 
-async function handleNewRound(logger: Logger, interaction: ChatInputCommandInteraction) {
-    
+async function handleEndRound(logger: Logger, interaction: ChatInputCommandInteraction) {
+    const { options, user, guildId } = interaction;
+
+    if (!guildId) return;
+
+    await interaction.deferReply({});
+
+    const session = await prisma.session.findFirst({
+        where: {
+            guild: guildId,
+            finished: false,
+            members: {
+                some: {
+                    userId: user.id,
+                }
+            },
+        },
+        select: {
+            rounds: true,
+        },
+    });
+
+    if (!session) {
+        return interaction.editReply({
+            content: `You're not in a session in this guild.`,
+        });
+    }
+
+    const currentRound = session.rounds
+        .find(round => round.won === null && round.finishedAt === null);
+
+    if (!currentRound) {
+        return interaction.editReply({
+            content: `You don't have an active round, use \`/session round start\` to start a new round.`,
+        });
+    }
+
+    const win = options.getBoolean('win', true);
+    const ghost = options.getString('ghost', true);
+
+    await prisma.sessionRound.update({
+        data: {
+            won: win,
+            ghostType: ghost,
+            finishedAt: new Date(),
+        },
+        where: {
+            id: currentRound.id,
+        },
+    });
+
+    const embed = new EmbedBuilder()
+        .setTitle('Round finished')
+        .setColor(win
+            ? 'DarkGreen'
+            : 'DarkRed'
+        )
+        .setDescription(
+            `Round resulted in a ${win ? 'win' : 'loss'}\n`+
+            `Ghost type: ${ghost}`,
+        )
+        .setFooter({
+            text: 'To start a new round use /round start'
+        });
+
+    interaction.editReply({
+        embeds: [embed],
+    });
 }
 
-async function handleEndRound(logger: Logger, interaction: ChatInputCommandInteraction) {
+async function handleNewRound(logger: Logger, interaction: ChatInputCommandInteraction) {
     
 }
 
@@ -651,6 +717,10 @@ export default new SlashCommand({
                 return;
             } else if (command === 'end') {
                 handleEndSession(logger, interaction);
+            }
+        } else if (commandGroup === 'round') {
+            if (command === 'end') {
+                handleEndRound(logger, interaction);
             }
         }
 
