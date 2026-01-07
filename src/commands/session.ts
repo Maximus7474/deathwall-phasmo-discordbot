@@ -317,7 +317,6 @@ async function handleListUsers(logger: Logger, interaction: ChatInputCommandInte
             members: {
                 some: {
                     userId: user.id,
-                    isLeader: true,
                 }
             },
         },
@@ -359,6 +358,89 @@ async function handleListUsers(logger: Logger, interaction: ChatInputCommandInte
 
 async function handleStartSession(logger: Logger, interaction: ChatInputCommandInteraction) {
     
+    const { user, guildId } = interaction;
+
+    if (!guildId) return;
+
+    await interaction.deferReply({});
+
+    const session = await prisma.session.findFirst({
+        where: {
+            guild: guildId,
+            finished: false,
+            members: {
+                some: {
+                    userId: user.id,
+                    isLeader: true,
+                }
+            },
+        },
+        select: {
+            members: true,
+            id: true,
+            startedAt: true,
+            goal: true,
+            successfulRounds: true,
+            restrictionsPerRound: true,
+        },
+    });
+
+    if (!session) {
+        return interaction.editReply({
+            content: `You're not in a session in this guild.`,
+        });
+    }
+
+    const roundStarter = await selectRestrictions(session.id, session.restrictionsPerRound);
+
+    if (!roundStarter.success) {
+        return interaction.editReply({
+            content: `Unable to generate restrictions for first round:\n> \`${roundStarter.message}\``,
+        });
+    }
+
+    const sessionMember = session.members.find(member => member.userId === user.id)!;
+
+    await prisma.sessionRound.create({
+        data: {
+            sessionId: session.id,
+            startedById: sessionMember.id,
+        },
+    });
+
+    const embeds = [
+        // header embed
+        new EmbedBuilder()
+        .setTitle('Session started')
+        .setDescription(
+            `Goal: ${session.goal}\n`+
+            `New restrictions per round: ${session.restrictionsPerRound}`
+        )
+        .setFields({
+            name: 'Members',
+            value: session.members
+                .map(m => `* ${m.isLeader ? ':cook:' : ''}<@${m.userId}>`)
+                .join('\n'),
+            inline: true
+        }),
+        //
+        new EmbedBuilder()
+        .setTitle('First Restrictions')
+        .setDescription(
+            roundStarter.restrictions
+            .map(res => `* ${res.title}\n`+
+                (res.description ? `> ${res.description}` : '') + '\n'
+            )
+            .join('\n')
+        )
+    ];
+
+    await interaction.editReply({
+        content: session.members
+            .map(({ userId }) => `<@${userId}>`)
+            .join(' '),
+        embeds,
+    });
 }
 
 async function handleEndSession(logger: Logger, interaction: ChatInputCommandInteraction) {
@@ -489,6 +571,9 @@ export default new SlashCommand({
                 return;
             } else if (command === 'users') {
                 handleListUsers(logger, interaction);
+                return;
+            }  else if (command === 'start') {
+                handleStartSession(logger, interaction);
                 return;
             } 
         }
