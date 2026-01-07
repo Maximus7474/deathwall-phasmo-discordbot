@@ -69,12 +69,13 @@ model Restriction {
 }
 
 model SessionRestriction {
+  id            String      @id @default(cuid())
   number        Int
   selected      Boolean      @default(false)
+
   sessionId     String
   session       Session     @relation(fields: [sessionId], references: [id])
+
   restrictionId String
   restriction   Restriction @relation(fields: [restrictionId], references: [id])
-
-  @@id([sessionId, restrictionId])
 }
