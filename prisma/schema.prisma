@@ -26,12 +26,16 @@ model Session {
   // Relations
   members               SessionMember[]
   restrictions          SessionRestriction[]
+  rounds                SessionRound[]
 }
 
 model SessionRound {
   id                    String              @id @default(cuid())
   ghostType             String?
   won                   Boolean             @default(false)
+
+  sessionId     String
+  session       Session     @relation(fields: [sessionId], references: [id])
   
   startedById String
   startedBy   SessionMember @relation("RoundsStartedBy", fields: [startedById], references: [id])
