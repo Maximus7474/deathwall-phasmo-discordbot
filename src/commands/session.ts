@@ -705,7 +705,6 @@ export default new SlashCommand({
                 .addUserOption(o =>
                     o.setName('user')
                     .setDescription('User to invite to the session')
-                    .setRequired(true)
                 )
             )
             .addSubcommand(c =>
@@ -714,7 +713,6 @@ export default new SlashCommand({
                 .addUserOption(o =>
                     o.setName('user')
                     .setDescription('User to remove from the session')
-                    .setRequired(true)
                 )
             )
             .addSubcommand(c =>
@@ -749,7 +747,6 @@ export default new SlashCommand({
                     o.setName('ghost')
                     .setDescription('The ghost that needed finding')
                     .setAutocomplete(true)
-                    .setRequired(true)
                 )
             )
             .addSubcommand(c =>
