@@ -178,6 +178,28 @@ async function handleCreate(logger: Logger, interaction: ChatInputCommandInterac
             sessionId: session.id,
         }
     });
+
+    const embed = new EmbedBuilder()
+        .setTitle('New session created')
+        .setDescription(
+            'You can now finish configure it using the following commands:\n'+
+            '* `/session handle invite` to add other discord users to the session\n'+
+            '* `/session handle remove` to remove discord users from the session\n'+
+            '* `/session handle users` to display current users in the session\n'+
+            '* `/session handle start` to start the session\n'+
+            '\n'+
+            'Invited users can also use the following commands:\n'+
+            '* `/session round start`\n'+
+            '* `/session round end` close a round and inform the outcome\n'+
+            '* `/session round restrictions` list the current restrictions on the session\n'
+        )
+        .setFooter({
+            text: `Session id: ${session.id}`,
+        })
+
+    interaction.editReply({
+        embeds: [embed],
+    });
 }
 
 async function handleInviteUser(logger: Logger, interaction: ChatInputCommandInteraction) {
