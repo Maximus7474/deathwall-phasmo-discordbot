@@ -3,6 +3,128 @@ import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
 import { GHOST_TYPES } from "../utils/data";
 import { prisma } from "../utils/prisma";
+import type { Restriction } from '@prisma/client'
+
+type CleanRestriction = Omit<Restriction, 'addedBy' | 'addedAt'>;
+type ResSelectionResponse = {
+    success: false;
+    message: string;
+} | {
+    success: true;
+    restrictions: CleanRestriction[];
+}
+
+async function selectRestrictions(sessionId: string, restrictionCount: number): Promise<ResSelectionResponse> {
+    const rawCurrentRestrictions = await prisma.sessionRestriction.findMany({
+        where: {
+            sessionId,
+        },
+        select: {
+            restriction: {
+                select: {
+                    id: true,
+                    occurences: true,
+                }
+            }
+        }
+    });
+
+    const unselectableRestrictions: string[] = [];
+    const restrictionStats = rawCurrentRestrictions
+        .reduce<{ [key: string ]: { count: number; maxOccurrences: number }}>(
+            (acc, { restriction }) => {
+                const id = restriction.id;
+                
+                if (!acc[id]) {
+                    acc[id] = {
+                        count: 0,
+                        maxOccurrences: restriction.occurences || Infinity
+                    };
+                }
+                acc[id].count++;
+
+                if (acc[id].count >= acc[id].maxOccurrences) {
+                    unselectableRestrictions.push(id);
+                }
+
+                return acc;
+            }, {}
+        );
+
+    const restrictions = await prisma.restriction.findMany({
+        where: {
+            id: {
+                notIn: unselectableRestrictions
+            },
+        },
+        select: {
+            id: true,
+            occurences: true,
+            title: true,
+            description: true,
+            addedAt: false,
+            addedBy: false,
+        }
+    });
+
+    if (restrictions.length < 1) return {
+        success: false,
+        message: 'No restrictions found !',
+    };
+
+    const weightedPool = restrictions.map(res => {
+        const stats = restrictionStats[res.id] || { count: 0 };
+        
+        const weight = Math.max(0, (res.occurences ?? Infinity) - stats.count);
+        
+        return {
+            id: res.id,
+            weight
+        };
+    }).filter(res => res.weight > 0);
+
+    if (weightedPool.length === 0) return {
+        success: false,
+        message: 'No new restrictions can be added !',
+    };
+
+    const totalWeight = weightedPool.reduce((sum, item) => sum + item.weight, 0);
+
+    const selectedIds: string[] = [];
+
+    for (let i = 0; i < restrictionCount; i++) {
+        let roll = Math.random() * totalWeight;
+        
+        for (const item of weightedPool) {
+            roll -= item.weight;
+            if (roll <= 0 && !selectedIds.includes(item.id)) {
+                selectedIds.push(item.id);
+                break;
+            }
+        }
+    }
+
+    const roundCount = await prisma.sessionRound.count({
+        where: {
+            sessionId,
+        },
+    });
+
+    await prisma.sessionRestriction.createMany({
+        data: selectedIds.map(id => ({
+            number: roundCount + 1,
+            sessionId: sessionId,
+            restrictionId: id,
+        })),
+    });
+
+    const newRestrictions = restrictions.filter(res => selectedIds.includes(res.id));
+
+    return {
+        success: true,
+        restrictions: newRestrictions,
+    };
+}
 
 async function handleCreate(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { options, user, guildId } = interaction;
