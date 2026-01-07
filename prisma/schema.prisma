@@ -56,7 +56,7 @@ model Restriction {
   id          String   @id @default(cuid())
   title       String
   description String?
-  occurences  Int
+  occurences  Int?
   addedBy     String
   addedAt     DateTime @default(now())
 
