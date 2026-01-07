@@ -32,13 +32,13 @@ model Session {
 model SessionRound {
   id                    String              @id @default(cuid())
   ghostType             String?
-  won                   Boolean             @default(false)
+  won                   Boolean?
 
-  sessionId     String
-  session       Session     @relation(fields: [sessionId], references: [id])
+  sessionId             String
+  session               Session             @relation(fields: [sessionId], references: [id])
   
-  startedById String
-  startedBy   SessionMember @relation("RoundsStartedBy", fields: [startedById], references: [id])
+  startedById           String
+  startedBy             SessionMember       @relation("RoundsStartedBy", fields: [startedById], references: [id])
 
   startedAt             DateTime            @default(now())
   finishedAt            DateTime?
