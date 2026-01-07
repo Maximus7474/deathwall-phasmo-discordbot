@@ -141,9 +141,6 @@ async function handleCreate(logger: Logger, interaction: ChatInputCommandInterac
     const inSession = await prisma.session.findFirst({
         where: {
             guild: guildId,
-            startedAt: {
-                not: null,
-            },
             finished: false,
             members: {
                 some: {
