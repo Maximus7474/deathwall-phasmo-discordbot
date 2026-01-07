@@ -807,12 +807,15 @@ export default new SlashCommand({
                 return;
             } else if (command === 'end') {
                 handleEndSession(logger, interaction);
+                return;
             }
         } else if (commandGroup === 'round') {
             if (command === 'end') {
                 handleEndRound(logger, interaction);
+                return;
             } else if (command === 'start') {
                 handleNewRound(logger, interaction);
+                return;
             }
         }
 
