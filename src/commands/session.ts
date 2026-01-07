@@ -592,7 +592,81 @@ async function handleEndRound(logger: Logger, interaction: ChatInputCommandInter
 }
 
 async function handleNewRound(logger: Logger, interaction: ChatInputCommandInteraction) {
-    
+    const { user, guildId } = interaction;
+
+    if (!guildId) return;
+
+    await interaction.deferReply({});
+
+    const session = await prisma.session.findFirst({
+        where: {
+            guild: guildId,
+            finished: false,
+            members: {
+                some: {
+                    userId: user.id,
+                }
+            },
+        },
+        select: {
+            id: true,
+            restrictionsPerRound: true,
+            rounds: true,
+            members: {
+                select: {
+                    id: true,
+                    userId: true,
+                },
+            },
+        },
+    });
+
+    if (!session) {
+        return interaction.editReply({
+            content: `You're not in a session in this guild.`,
+        });
+    }
+
+    const activeRound = session.rounds
+        .some(round => round.won === null && round.finishedAt === null);
+
+    if (activeRound) {
+        return interaction.editReply({
+            content: `You still have an active round, use \`/session round end\` to start a end round it and provide results.`,
+        });
+    }
+
+    const roundData = await selectRestrictions(session.id, session.restrictionsPerRound);
+
+    if (!roundData.success) {
+        return interaction.editReply({
+            content: `Unable to generate restrictions for first round:\n> \`${roundData.message}\``,
+        });
+    }
+
+    const sessionMember = session.members.find(member => member.userId === user.id)!;
+
+    await prisma.sessionRound.create({
+        data: {
+            sessionId: session.id,
+            startedById: sessionMember.id,
+        },
+    });
+
+    const embed = new EmbedBuilder()
+        .setTitle('First Restrictions')
+        .setDescription(
+            'New restrictions:\n'+
+            roundData.restrictions
+            .map(res => `* ${res.title}\n`+
+                (res.description ? `> ${res.description}` : '') + '\n'
+            )
+            .join('\n')
+        );
+
+    await interaction.editReply({
+        embeds: [embed],
+    });
 }
 
 async function handleRestrictions(logger: Logger, interaction: ChatInputCommandInteraction) {
@@ -721,6 +795,8 @@ export default new SlashCommand({
         } else if (commandGroup === 'round') {
             if (command === 'end') {
                 handleEndRound(logger, interaction);
+            } else if (command === 'start') {
+                handleNewRound(logger, interaction);
             }
         }
 
