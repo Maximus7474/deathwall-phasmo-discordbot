@@ -448,7 +448,7 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
         .setTitle('First Restrictions')
         .setDescription(
             roundStarter.restrictions
-            .map(res => `* ${res.title}\n`+
+            .map(res => `${res.title}\n`+
                 (res.description ? `> ${res.description}` : '') + '\n'
             )
             .join('\n')
@@ -691,7 +691,7 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
         .setDescription(
             'New restrictions:\n'+
             roundData.restrictions
-            .map(res => `* ${res.title}\n`+
+            .map(res => `${res.title}\n`+
                 (res.description ? `> ${res.description}` : '') + '\n'
             )
             .join('\n')
@@ -703,7 +703,57 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
 }
 
 async function handleRestrictions(logger: Logger, interaction: ChatInputCommandInteraction) {
-    
+    const { user, guildId } = interaction;
+
+    if (!guildId) return;
+
+    await interaction.deferReply({});
+
+    const session = await prisma.session.findFirst({
+        where: {
+            guild: guildId,
+            finished: false,
+            members: {
+                some: {
+                    userId: user.id,
+                }
+            },
+        },
+        select: {
+            id: true,
+            restrictions: {
+                select: {
+                    restriction: {
+                        select: {
+                            id: true,
+                            title: true,
+                            description: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    if (!session) {
+        return interaction.editReply({
+            content: `You're not in a session in this guild.`,
+        });
+    }
+
+    const embed = new EmbedBuilder()
+        .setTitle('Restrictions')
+        .setDescription(
+            session.restrictions
+            .map(({ restriction }) => `${restriction.title}\n`+
+                (restriction.description ? `> ${restriction.description}` : '')
+            )
+            .join('\n')
+        );
+
+    interaction.editReply({
+        embeds: [embed],
+    });
 }
 
 export default new SlashCommand({
@@ -829,6 +879,9 @@ export default new SlashCommand({
                 return;
             } else if (command === 'new') {
                 handleNewRound(logger, interaction);
+                return;
+            } else if (command === 'restrictions') {
+                handleRestrictions(logger, interaction);
                 return;
             }
         }
