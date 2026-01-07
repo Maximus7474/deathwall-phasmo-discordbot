@@ -558,7 +558,9 @@ async function handleEndRound(logger: Logger, interaction: ChatInputCommandInter
             },
         },
         select: {
+            id: true,
             rounds: true,
+            successfulRounds: true,
         },
     });
 
@@ -590,6 +592,17 @@ async function handleEndRound(logger: Logger, interaction: ChatInputCommandInter
             id: currentRound.id,
         },
     });
+
+    if (win) {
+        await prisma.session.update({
+            data: {
+                successfulRounds: session.successfulRounds + 1,
+            },
+            where: {
+                id: session.id,
+            },
+        });
+    }
 
     const embed = new EmbedBuilder()
         .setTitle('Round finished')
@@ -813,7 +826,7 @@ export default new SlashCommand({
             if (command === 'end') {
                 handleEndRound(logger, interaction);
                 return;
-            } else if (command === 'start') {
+            } else if (command === 'new') {
                 handleNewRound(logger, interaction);
                 return;
             }
