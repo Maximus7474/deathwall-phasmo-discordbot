@@ -1,9 +1,9 @@
 import { type ChatInputCommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
+import type { Restriction } from '@prisma/client'
 import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
 import { GHOST_TYPES } from "../utils/data";
 import { prisma } from "../utils/prisma";
-import type { Restriction } from '@prisma/client'
 
 type CleanRestriction = Omit<Restriction, 'addedBy' | 'addedAt'>;
 type ResSelectionResponse = {
@@ -444,7 +444,81 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
 }
 
 async function handleEndSession(logger: Logger, interaction: ChatInputCommandInteraction) {
+    const { user, guildId } = interaction;
+
+    if (!guildId) return;
+
+    await interaction.deferReply({});
+
+    const session = await prisma.session.findFirst({
+        where: {
+            guild: guildId,
+            finished: false,
+            members: {
+                some: {
+                    userId: user.id,
+                    isLeader: true,
+                }
+            },
+        },
+        select: {
+            id: true,
+            goal: true,
+            members: true,
+            rounds: true,
+        },
+    });
+
+    if (!session) {
+        return interaction.editReply({
+            content: `You're not in a session in this guild.`,
+        });
+    }
+
+    const unfinishedSessions = session.rounds
+        .some(round => round.won === null && round.finishedAt === null);
+
+    if (unfinishedSessions) {
+        return interaction.editReply({
+            content: `You have an active round, use \`/session round end\` to determine the final outcome of it.`,
+        });
+    }
+
+    await prisma.session.update({
+        data: {
+            finished: true,
+            finishedAt: new Date(),
+        },
+        where: {
+            id: session.id,
+        }
+    });
+
+    const roundsWon = session.rounds.filter(round => round.won).length;
+    const roundsLost = session.rounds.length - roundsWon;
+    const projectWin = roundsWon >= session.goal;
+
+    const embed = new EmbedBuilder()
+        .setTitle('Session has ended')
+        .setColor(projectWin
+            ? 'Green'
+            : 'Blue'
+        )
+        .setDescription(
+            `This session concluded in a ${projectWin ? 'win' : 'loss'}.\n`+
+            `Score: ${roundsWon} wins - ${roundsLost} losses`
+        )
+        .setFields({
+            name: 'Members',
+            value: session.members
+                .map(m => `* ${m.isLeader ? ':cook:' : ''}<@${m.userId}>`)
+                .join('\n'),
+            inline: true
+        });
     
+    interaction.editReply({
+        embeds: [embed],
+    });
 }
 
 async function handleNewRound(logger: Logger, interaction: ChatInputCommandInteraction) {
@@ -575,7 +649,9 @@ export default new SlashCommand({
             }  else if (command === 'start') {
                 handleStartSession(logger, interaction);
                 return;
-            } 
+            } else if (command === 'end') {
+                handleEndSession(logger, interaction);
+            }
         }
 
         interaction.reply({
