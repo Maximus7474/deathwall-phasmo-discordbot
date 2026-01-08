@@ -3,7 +3,7 @@ import SlashCommand from "../classes/slash_command";
 
 export default new SlashCommand({
     name: 'ping',
-    guildSpecific: true,
+    guildSpecific: false,
     hideFromHelp: false,
     slashcommand: new SlashCommandBuilder()
         .setName('ping')
