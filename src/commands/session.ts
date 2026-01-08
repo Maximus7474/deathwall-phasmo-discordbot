@@ -131,9 +131,7 @@ async function handleCreate(logger: Logger, interaction: ChatInputCommandInterac
 
     if (!guildId) return;
 
-    await interaction.deferReply({
-        flags: MessageFlags.Ephemeral,
-    });
+    await interaction.deferReply({});
 
     const goal = options.getInteger('goal', true);
     const restrictions = options.getInteger('restrictions', false) ?? 2;
@@ -758,7 +756,7 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
 
 export default new SlashCommand({
     name: 'session',
-    guildSpecific: true,
+    guildSpecific: false,
     hideFromHelp: false,
     slashcommand: new SlashCommandBuilder()
         .setName('session')
@@ -788,6 +786,7 @@ export default new SlashCommand({
                 .addUserOption(o =>
                     o.setName('user')
                     .setDescription('User to invite to the session')
+                    .setRequired(true)
                 )
             )
             .addSubcommand(c =>
@@ -796,6 +795,7 @@ export default new SlashCommand({
                 .addUserOption(o =>
                     o.setName('user')
                     .setDescription('User to remove from the session')
+                    .setRequired(true)
                 )
             )
             .addSubcommand(c =>
@@ -825,11 +825,13 @@ export default new SlashCommand({
                 .addBooleanOption(o =>
                     o.setName('win')
                     .setDescription('Was the round a victory')
+                    .setRequired(true)
                 )
                 .addStringOption(o =>
                     o.setName('ghost')
                     .setDescription('The ghost that needed finding')
                     .setAutocomplete(true)
+                    .setRequired(true)
                 )
             )
             .addSubcommand(c =>
