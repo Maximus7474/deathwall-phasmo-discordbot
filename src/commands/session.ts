@@ -252,7 +252,7 @@ async function handleInviteUser(logger: Logger, interaction: ChatInputCommandInt
     });
 
     interaction.editReply({
-        content: `User ${user.displayName} was added to the session.`
+        content: `User ${invitee.displayName} was added to the session.`
     });
 }
 
