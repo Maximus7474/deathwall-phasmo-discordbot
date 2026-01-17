@@ -2,7 +2,7 @@ import Logger from "./logger";
 
 const logger = new Logger('LOCALE');
 
-type LocaleStructure = typeof import('../../locales/en.json');
+export type LocaleStructure = typeof import('../../locales/en.json');
 
 const localeKey = process.env.LOCALE_KEY ?? 'en';
 
