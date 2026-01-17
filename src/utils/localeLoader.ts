@@ -47,3 +47,12 @@ export function getCommandLocalization<K extends keyof LocaleStructure['commands
 ): LocaleStructure['commands'][K] {
   return Locale.commands[command];
 }
+
+export function getGhost(): LocaleStructure['ghosts'];
+export function getGhost<K extends keyof LocaleStructure['ghosts']>(id: K): string;
+export function getGhost(id?: string): string | Record<string, string> {
+  if (!id) {
+    return Locale.ghosts;
+  }
+  return Locale.ghosts[id as keyof LocaleStructure['ghosts']] ?? id;
+}
