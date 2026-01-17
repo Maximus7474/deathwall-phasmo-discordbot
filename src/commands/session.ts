@@ -228,6 +228,7 @@ async function handleInviteUser(logger: Logger, interaction: ChatInputCommandInt
         where: {
             session: {
                 guild: guildId,
+                finished: false,
             },
             userId: invitee.id,
         },
