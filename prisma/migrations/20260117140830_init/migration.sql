@@ -35,8 +35,6 @@ CREATE TABLE "SessionMember" (
 -- CreateTable
 CREATE TABLE "Restriction" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "title" TEXT NOT NULL,
-    "description" TEXT,
     "occurences" INTEGER,
     "addedBy" TEXT NOT NULL,
     "addedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
