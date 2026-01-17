@@ -6,6 +6,13 @@
             "response": {
                 "title": "Application commands"
             }
+        },
+        "ping": {
+            "name": "ping",
+            "description": "Ping the bot to check if it is alive !",
+            "response": {
+                "text": "Pong !"
+            }
         }
     },
     "generic_responses": {
