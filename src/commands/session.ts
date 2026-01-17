@@ -136,7 +136,6 @@ async function selectRestrictions(sessionId: string, restrictionCount: number): 
             sessionId: sessionId,
             restrictionId: template.id,
             metadata: instanceMetadata,
-            selected: true
         };
     });
 
