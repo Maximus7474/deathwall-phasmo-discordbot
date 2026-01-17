@@ -171,6 +171,7 @@
                     }
                 },
                 "endround": {
+                    "invalidghost": "{ghost} is invalid, select one from the list.",
                     "noactiveround": "You don't have an active round, use `/session round start` to start a new round.",
                     "embed": {
                         "title": "Round finished",

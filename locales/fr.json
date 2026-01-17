@@ -171,6 +171,7 @@
                     }
                 },
                 "endround": {
+                    "invalidghost": "{ghost} est invalide, sélectionnez un de la liste.",
                     "noactiveround": "Aucune manche n'est en cours, utilisez `/session manche nouvelle` pour en démarrer une.",
                     "embed": {
                         "title": "Manche terminée",
