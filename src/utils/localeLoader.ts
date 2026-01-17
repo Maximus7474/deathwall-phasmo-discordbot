@@ -1,10 +1,11 @@
+import { Locale as LocaleEnum } from "discord.js";
 import Logger from "./logger";
 
 const logger = new Logger('LOCALE');
 
 export type LocaleStructure = typeof import('../../locales/en.json');
 
-const localeKey = process.env.LOCALE_KEY ?? 'en';
+const localeCfg = process.env.LOCALE_KEY ?? 'en';
 
 async function loadLocale<T>(fileName: string): Promise<T> {
   const path = `./locales/${fileName}.json`;
@@ -30,17 +31,26 @@ function mergeDeep(target: any, source: any) { // eslint-disable-line
 
 let Locale: LocaleStructure;
 
-const primary = await loadLocale<LocaleStructure>(localeKey).catch(() => null);
+const primary = await loadLocale<LocaleStructure>(localeCfg).catch(() => null);
 const fallback = await loadLocale<LocaleStructure>('en');
 
-if (!primary || localeKey === 'en') {
+if (!primary || localeCfg === 'en') {
   Locale = fallback;
 } else {
   Locale = mergeDeep(primary, fallback);
-  logger.info(`Loaded ${localeKey} with English fallbacks for missing keys.`);
+  logger.info(`Loaded ${localeCfg} with English fallbacks for missing keys.`);
 }
 
-export { Locale };
+const sanitizeLocale = (input: string): LocaleEnum => {
+  const values = Object.values(LocaleEnum) as string[];
+
+  if (values.includes(input)) return input as LocaleEnum;
+  return LocaleEnum.EnglishGB;
+};
+
+const localeKey = sanitizeLocale(localeCfg);
+
+export { Locale, localeKey };
 
 export function getCommandLocalization<K extends keyof LocaleStructure['commands']>(
   command: K
