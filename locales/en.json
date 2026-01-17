@@ -1,0 +1,14 @@
+{
+    "commands": {
+        "help": {
+            "name": "help",
+            "description": "Display help text for commands",
+            "response": {
+                "title": "Application commands"
+            }
+        }
+    },
+    "generic_responses": {
+        "not_in_guild": "This command only works in a server."
+    }
+}

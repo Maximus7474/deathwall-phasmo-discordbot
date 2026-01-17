@@ -1,17 +1,21 @@
 import { MessageFlags, SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import SlashCommand from "../classes/slash_command";
+import { getCommandLocalization, Locale } from "../utils/localeLoader";
+
+const commandId = 'help';
+const commandLocales = getCommandLocalization(commandId);
 
 export default new SlashCommand({
-    name: 'help',
+    name: commandId,
     guildSpecific: false,
     hideFromHelp: true,
     slashcommand: new SlashCommandBuilder()
-        .setName('help')
-        .setDescription('Displays a list of all available commands.'),
+        .setName(commandLocales.name)
+        .setDescription(commandLocales.description),
     callback: async (logger, client, interaction) => {
         if (!interaction.inGuild()) {
             await interaction.reply({
-                content: "This command only works in a server.",
+                content: Locale.generic_responses.not_in_guild,
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -22,7 +26,7 @@ export default new SlashCommand({
 
         const helpEmbed = new EmbedBuilder()
             .setColor('#0099ff')
-            .setTitle('Application Commands');
+            .setTitle(commandLocales.response.title);
 
         for (const [, cmd] of client.commands) {
             const commandData = cmd.register();
