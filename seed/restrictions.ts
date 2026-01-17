@@ -17,7 +17,7 @@ async function seed() {
         { id: "random_map", occurences: 1, metadata: { map: "random" } },
         { id: "insane_hunters", occurences: 2, metadata: { sanity: -25 } },
         { id: "dodgy_medicine", occurences: 1 },
-        { id: "sole_copy", occurences: 3, metadata: { soleItem: 1 } },
+        { id: "sole_copy", occurences: 3 },
         { id: "suspicious_contractors", occurences: 1 },
     ];
 
