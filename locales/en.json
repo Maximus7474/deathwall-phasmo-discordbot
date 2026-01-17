@@ -13,6 +13,183 @@
             "response": {
                 "text": "Pong !"
             }
+        },
+        "session": {
+            "name": "session",
+            "description": "Handle a game session",
+            "subcommandGroups": {
+                "handle": {
+                    "name": "handle",
+                    "description": "Handle creating, editing sessions",
+                    "subcommands": {
+                        "create": {
+                            "name": "create",
+                            "description": "Create a new session",
+                            "options": {
+                                "goal": {
+                                    "name": "goal",
+                                    "description": "Number of rounds to win"
+                                },
+                                "restrictions": {
+                                    "name": "restrictions",
+                                    "description": "Number of restrictions added per round"
+                                }
+                            }
+                        },
+                        "invite": {
+                            "name": "invite",
+                            "description": "Invite a user to the session, will allow him to use commands",
+                            "options": {
+                                "user": {
+                                    "name": "user",
+                                    "description": "User to invite to the session"
+                                }
+                            }
+                        },
+                        "remove": {
+                            "name": "remove",
+                            "description": "Remove a user from the session",
+                            "options": {
+                                "user": {
+                                    "name": "user",
+                                    "description": "User to remove from the session"
+                                }
+                            }
+                        },
+                        "users": {
+                            "name": "users",
+                            "description": "List the current users of a session",
+                            "options": {
+                                "ephemeral": {
+                                    "name": "ephemeral",
+                                    "description": "Show the list to all users in a channel (default: True)"
+                                }
+                            }
+                        },
+                        "start": {
+                            "name": "start",
+                            "description": "Start a session, no users can be added"
+                        },
+                        "end": {
+                            "name": "end",
+                            "description": "Ends a session, will store and archive the results"
+                        }
+                    }
+                },
+                "round": {
+                    "name": "round",
+                    "description": "Handle a round result",
+                    "subcommands": {
+                        "end": {
+                            "name": "end",
+                            "description": "Mark the current round as a win",
+                            "options": {
+                                "win": {
+                                    "name": "win",
+                                    "description": "Was the round a victory"
+                                },
+                                "ghost": {
+                                    "name": "ghost",
+                                    "description": "The ghost that needed finding"
+                                }
+                            }
+                        },
+                        "new": {
+                            "name": "new",
+                            "description": "Start a new round"
+                        },
+                        "restrictions": {
+                            "name": "restrictions",
+                            "description": "Show the current restrictions"
+                        }
+                    }
+                },
+                "high_scores": {
+                    "name": "high_scores",
+                    "description": "Show best results and relevant data",
+                    "subcommands": {
+                        "unavailable": {
+                            "name": "unavailable",
+                            "description": "unavailable"
+                        }
+                    }
+                }
+            },
+            "response": {
+                "generic": {
+                    "notinsession": "You're not in a session in this guild.",
+                        "win": "win",
+                        "loss": "loss"
+                },
+                "create": {
+                    "insession": "You're already in an active session on this guild.\n-# session id: `{sessionid}`",
+                    "createdembed": {
+                        "title": "New session created",
+                        "content": "You can now finish configure it using the following commands:\n* `/session handle invite` to add other discord users to the session\n* `/session handle remove` to remove discord users from the session\n* `/session handle users` to display current users in the session\n* `/session handle start` to start the session\n\nInvited users can also use the following commands:\n* `/session round start`\n* `/session round end` close a round and inform the outcome\n* `/session round restrictions` list the current restrictions on the session\n",
+                        "footer": "Session id: {session}"
+                    }
+                },
+                "inviteuser": {
+                    "notlead": "You're not leading a session in this guild, you can not invite people to it.",
+                    "userinsession": "User {username} is already in a session on this guild, he can not be invited to this one.",
+                    "useradded": "{username} was added to the session."
+                },
+                "removeuser": {
+                    "notleading": "You're not leading a session in this guild, you can not remove people from one.",
+                    "usernotinsession": "User {username} is not in your session.",
+                    "userremoved": "User {username} was removed from your session."
+                },
+                "listusers": {
+                    "embed": {
+                        "title": "Session members",
+                        "content": "Start: {start}\nProgress: {progress}\nNew restrictions per round: {restrictions}",
+                        "notstarted": "not started",
+                        "members": "Members",
+                        "lead": ":cook: {mention}",
+                        "member": "{mention}"
+                    }
+                },
+                "startsession": {
+                    "unabletogenerate": "Unable to generate restrictions for first round:",
+                    "embed": {
+                        "title1": "Session started",
+                        "description1": "Goal: {goal}\nNew restrictions per round: {restrictions}",
+                        "members": "Members",
+                        "lead": ":cook: {mention}",
+                        "member": "{mention}",
+                        "title2": "First Restrictions"
+                    }
+                },
+                "endsession": {
+                    "activeround": "You have an active round, use `/session round end` to determine the final outcome of it.",
+                    "embed": {
+                        "title": "Session has ended",
+                        "description": "This session concluded in a {state}.\nScore: {wins} wins - {losses} losses",
+                        "members": "Members",
+                        "lead": ":cook: {mention}",
+                        "member": "{mention}"
+                    }
+                },
+                "endround": {
+                    "noactiveround": "You don't have an active round, use `/session round start` to start a new round.",
+                    "embed": {
+                        "title": "Round finished",
+                        "description": "Round resulted in a {state}.\nGhost type: {ghost}",
+                        "footer": "To start a new round use /round start"
+                    }
+                },
+                "newround": {
+                    "activeround": "You have an active round, use `/session round end` to determine the final outcome of it.",
+                    "unabletogenerate": "Unable to generate restrictions for round:",
+                    "embed": {
+                        "title": "Restrictions",
+                        "description": "New restrictions:"
+                    }
+                },
+                "restrictions": {
+                    "restrictions": "Restrictions"
+                }
+            }
         }
     },
     "generic_responses": {

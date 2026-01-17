@@ -4,6 +4,10 @@ import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
 import { GHOST_TYPES } from "../utils/data";
 import { prisma } from "../utils/prisma";
+import { getCommandLocalization } from "../utils/localeLoader";
+
+const commandId = 'session';
+const commandLocales = getCommandLocalization(commandId);
 
 type CleanRestriction = Omit<Restriction, 'addedBy' | 'addedAt'>;
 type ResSelectionResponse = {
@@ -128,6 +132,7 @@ async function selectRestrictions(sessionId: string, restrictionCount: number): 
 
 async function handleCreate(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { options, user, guildId } = interaction;
+    const { create: responseLocale } = commandLocales.response;
 
     if (!guildId) return;
 
@@ -153,7 +158,7 @@ async function handleCreate(logger: Logger, interaction: ChatInputCommandInterac
 
     if (inSession) {
         return interaction.editReply({
-            content: `You're already in an active session on this guild.\n-# session id: \`${inSession.id}\``,
+            content: responseLocale.insession.replace('{session}', inSession.id),
         });
     }
 
@@ -175,21 +180,12 @@ async function handleCreate(logger: Logger, interaction: ChatInputCommandInterac
     });
 
     const embed = new EmbedBuilder()
-        .setTitle('New session created')
+        .setTitle(responseLocale.createdembed.title)
         .setDescription(
-            'You can now finish configure it using the following commands:\n'+
-            '* `/session handle invite` to add other discord users to the session\n'+
-            '* `/session handle remove` to remove discord users from the session\n'+
-            '* `/session handle users` to display current users in the session\n'+
-            '* `/session handle start` to start the session\n'+
-            '\n'+
-            'Invited users can also use the following commands:\n'+
-            '* `/session round start`\n'+
-            '* `/session round end` close a round and inform the outcome\n'+
-            '* `/session round restrictions` list the current restrictions on the session\n'
+            responseLocale.createdembed.content
         )
         .setFooter({
-            text: `Session id: ${session.id}`,
+            text: responseLocale.createdembed.footer.replace('{session}', session.id),
         })
 
     interaction.editReply({
@@ -199,6 +195,7 @@ async function handleCreate(logger: Logger, interaction: ChatInputCommandInterac
 
 async function handleInviteUser(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { options, user, guildId } = interaction;
+    const { inviteuser: responseLocale } = commandLocales.response;
 
     if (!guildId) return;
 
@@ -224,7 +221,7 @@ async function handleInviteUser(logger: Logger, interaction: ChatInputCommandInt
 
     if (!session) {
         return interaction.editReply({
-            content: `You're not leading a session in this guild, you can not invite people to it.`,
+            content: responseLocale.notlead,
         });
     }
 
@@ -239,7 +236,7 @@ async function handleInviteUser(logger: Logger, interaction: ChatInputCommandInt
 
     if (isListed) {
         return interaction.editReply({
-            content: `User ${user.displayName} is already in a session on this guild, he can not be invited to this one.`,
+            content: responseLocale.userinsession.replace('{username}', invitee.displayName),
         });
     }
 
@@ -252,12 +249,13 @@ async function handleInviteUser(logger: Logger, interaction: ChatInputCommandInt
     });
 
     interaction.editReply({
-        content: `User ${invitee.displayName} was added to the session.`
+        content: responseLocale.useradded.replace('{username}', invitee.displayName),
     });
 }
 
 async function handleRemoveUser(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { options, user, guildId } = interaction;
+    const { removeuser: responseLocale } = commandLocales.response;
 
     if (!guildId) return;
 
@@ -283,7 +281,7 @@ async function handleRemoveUser(logger: Logger, interaction: ChatInputCommandInt
 
     if (!session) {
         return interaction.editReply({
-            content: `You're not leading a session in this guild, you can not remove people from one.`,
+            content: responseLocale.notleading,
         });
     }
 
@@ -299,7 +297,7 @@ async function handleRemoveUser(logger: Logger, interaction: ChatInputCommandInt
 
     if (!isListed) {
         return interaction.editReply({
-            content: `User ${user.displayName} is not in your session.`,
+            content: responseLocale.usernotinsession.replace('{username}', removee.displayName),
         });
     }
 
@@ -310,12 +308,13 @@ async function handleRemoveUser(logger: Logger, interaction: ChatInputCommandInt
     });
 
     interaction.editReply({
-        content: `User ${user.displayName} was removed from the session.`
+        content: responseLocale.userremoved.replace('{username}', removee.displayName),
     });
 }
 
 async function handleListUsers(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { options, user, guildId } = interaction;
+    const { listusers: responseLocale, generic: genericResponse } = commandLocales.response;
 
     if (!guildId) return;
 
@@ -349,21 +348,25 @@ async function handleListUsers(logger: Logger, interaction: ChatInputCommandInte
 
     if (!session) {
         return interaction.editReply({
-            content: `You're not in a session in this guild.`,
+            content: genericResponse.notinsession,
         });
     }
 
     const embed = new EmbedBuilder()
-        .setTitle('Session members')
+        .setTitle(responseLocale.embed.title)
         .setDescription(
-            `Start: ${session.startedAt ? `<t:${Math.floor(session.startedAt.getTime() / 1000)}>` : 'not started'}\n`+
-            `Progress: ${session.successfulRounds}/${session.goal}\n`+
-            `New restrictions per round: ${session.restrictionsPerRound}`
+            responseLocale.embed.content
+                .replace('{start}', session.startedAt ? `<t:${Math.floor(session.startedAt.getTime() / 1000)}>` : responseLocale.embed.notstarted)
+                .replace('{progress}', `${session.successfulRounds}/${session.goal}`)
+                .replace('{restrictions}', `${session.restrictionsPerRound}`)
         )
         .setFields({
-            name: 'Members',
+            name: responseLocale.embed.members,
             value: session.members
-                .map(m => `* ${m.isLeader ? ':cook:' : ''}<@${m.userId}>`)
+                .map(m => 
+                    `* ${responseLocale.embed[m.isLeader ? 'lead' : 'member']
+                    .replace('{mention}', `<@${m.userId}>`)}`
+                )
                 .join('\n'),
             inline: true
         });
@@ -374,8 +377,8 @@ async function handleListUsers(logger: Logger, interaction: ChatInputCommandInte
 }
 
 async function handleStartSession(logger: Logger, interaction: ChatInputCommandInteraction) {
-    
     const { user, guildId } = interaction;
+    const { startsession: responseLocale, generic: genericResponse } = commandLocales.response;
 
     if (!guildId) return;
 
@@ -404,7 +407,7 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
 
     if (!session) {
         return interaction.editReply({
-            content: `You're not in a session in this guild.`,
+            content: genericResponse.notinsession,
         });
     }
 
@@ -412,8 +415,9 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
 
     if (!roundStarter.success) {
         logger.error(`StartSession, unable to generate restrictions for first round: "${roundStarter.message}"`);
+
         return interaction.editReply({
-            content: `Unable to generate restrictions for first round:\n> \`${roundStarter.message}\``,
+            content: `${responseLocale.unabletogenerate}\n> \`${roundStarter.message}\``,
         });
     }
 
@@ -429,21 +433,25 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
     const embeds = [
         // header embed
         new EmbedBuilder()
-        .setTitle('Session started')
+        .setTitle(responseLocale.embed.title1)
         .setDescription(
-            `Goal: ${session.goal}\n`+
-            `New restrictions per round: ${session.restrictionsPerRound}`
+            responseLocale.embed.description1
+                .replace('{goal}', `${session.goal}`)
+                .replace('{restrictions}', `${session.restrictionsPerRound}`)
         )
         .setFields({
-            name: 'Members',
+            name: responseLocale.embed.members,
             value: session.members
-                .map(m => `* ${m.isLeader ? ':cook:' : ''}<@${m.userId}>`)
+                .map(m => 
+                    `* ${responseLocale.embed[m.isLeader ? 'lead' : 'member']
+                    .replace('{mention}', `<@${m.userId}>`)}`
+                )
                 .join('\n'),
             inline: true
         }),
         //
         new EmbedBuilder()
-        .setTitle('First Restrictions')
+        .setTitle(responseLocale.embed.title2)
         .setDescription(
             roundStarter.restrictions
             .map(res => `${res.title}\n`+
@@ -463,6 +471,7 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
 
 async function handleEndSession(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { user, guildId } = interaction;
+    const { endsession: responseLocale, generic: genericResponse } = commandLocales.response;
 
     if (!guildId) return;
 
@@ -489,7 +498,7 @@ async function handleEndSession(logger: Logger, interaction: ChatInputCommandInt
 
     if (!session) {
         return interaction.editReply({
-            content: `You're not in a session in this guild.`,
+            content: genericResponse.notinsession,
         });
     }
 
@@ -498,7 +507,7 @@ async function handleEndSession(logger: Logger, interaction: ChatInputCommandInt
 
     if (unfinishedSessions) {
         return interaction.editReply({
-            content: `You have an active round, use \`/session round end\` to determine the final outcome of it.`,
+            content: responseLocale.activeround,
         });
     }
 
@@ -517,19 +526,27 @@ async function handleEndSession(logger: Logger, interaction: ChatInputCommandInt
     const projectWin = roundsWon >= session.goal;
 
     const embed = new EmbedBuilder()
-        .setTitle('Session has ended')
+        .setTitle(responseLocale.embed.title)
         .setColor(projectWin
             ? 'Green'
             : 'Blue'
         )
         .setDescription(
-            `This session concluded in a ${projectWin ? 'win' : 'loss'}.\n`+
-            `Score: ${roundsWon} wins - ${roundsLost} losses`
+            responseLocale.embed.description
+                .replace('{state}', projectWin
+                    ? genericResponse.win
+                    : genericResponse.loss
+                )
+                .replace('{wins}', `${roundsWon}`)
+                .replace('{losses}', `${roundsLost}`)
         )
         .setFields({
-            name: 'Members',
+            name: responseLocale.embed.members,
             value: session.members
-                .map(m => `* ${m.isLeader ? ':cook:' : ''}<@${m.userId}>`)
+                .map(m => 
+                    `* ${responseLocale.embed[m.isLeader ? 'lead' : 'member']
+                    .replace('{mention}', `<@${m.userId}>`)}`
+                )
                 .join('\n'),
             inline: true
         });
@@ -541,6 +558,8 @@ async function handleEndSession(logger: Logger, interaction: ChatInputCommandInt
 
 async function handleEndRound(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { options, user, guildId } = interaction;
+    const { endround: responseLocale, generic: genericResponse } = commandLocales.response;
+
 
     if (!guildId) return;
 
@@ -565,7 +584,7 @@ async function handleEndRound(logger: Logger, interaction: ChatInputCommandInter
 
     if (!session) {
         return interaction.editReply({
-            content: `You're not in a session in this guild.`,
+            content: genericResponse.notinsession,
         });
     }
 
@@ -574,7 +593,7 @@ async function handleEndRound(logger: Logger, interaction: ChatInputCommandInter
 
     if (!currentRound) {
         return interaction.editReply({
-            content: `You don't have an active round, use \`/session round start\` to start a new round.`,
+            content: responseLocale.noactiveround,
         });
     }
 
@@ -604,17 +623,18 @@ async function handleEndRound(logger: Logger, interaction: ChatInputCommandInter
     }
 
     const embed = new EmbedBuilder()
-        .setTitle('Round finished')
+        .setTitle(responseLocale.embed.title)
         .setColor(win
             ? 'DarkGreen'
             : 'DarkRed'
         )
         .setDescription(
-            `Round resulted in a ${win ? 'win' : 'loss'}\n`+
-            `Ghost type: ${ghost}`,
+            responseLocale.embed.description
+                .replace('{state}', genericResponse[win ? 'win' : 'loss'])
+                .replace('{ghost}', ghost)
         )
         .setFooter({
-            text: 'To start a new round use /round start'
+            text: responseLocale.embed.footer
         });
 
     interaction.editReply({
@@ -624,6 +644,8 @@ async function handleEndRound(logger: Logger, interaction: ChatInputCommandInter
 
 async function handleNewRound(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { user, guildId } = interaction;
+    const { newround: responseLocale, generic: genericResponse } = commandLocales.response;
+
 
     if (!guildId) return;
 
@@ -654,7 +676,7 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
 
     if (!session) {
         return interaction.editReply({
-            content: `You're not in a session in this guild.`,
+            content: genericResponse.notinsession,
         });
     }
 
@@ -663,7 +685,7 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
 
     if (activeRound) {
         return interaction.editReply({
-            content: `You still have an active round, use \`/session round end\` to start a end round it and provide results.`,
+            content: responseLocale.activeround,
         });
     }
 
@@ -671,7 +693,7 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
 
     if (!roundData.success) {
         return interaction.editReply({
-            content: `Unable to generate restrictions for first round:\n> \`${roundData.message}\``,
+            content: `${responseLocale.unabletogenerate}\n> \`${roundData.message}\``,
         });
     }
 
@@ -685,9 +707,9 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
     });
 
     const embed = new EmbedBuilder()
-        .setTitle('First Restrictions')
+        .setTitle(responseLocale.embed.title)
         .setDescription(
-            'New restrictions:\n'+
+            responseLocale.embed.description + '\n'+
             roundData.restrictions
             .map(res => `${res.title}\n`+
                 (res.description ? `> ${res.description}` : '') + '\n'
@@ -702,6 +724,7 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
 
 async function handleRestrictions(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { user, guildId } = interaction;
+    const { restrictions: responseLocale, generic: genericResponse } = commandLocales.response;
 
     if (!guildId) return;
 
@@ -735,12 +758,12 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
 
     if (!session) {
         return interaction.editReply({
-            content: `You're not in a session in this guild.`,
+            content: genericResponse.notinsession,
         });
     }
 
     const embed = new EmbedBuilder()
-        .setTitle('Restrictions')
+        .setTitle(responseLocale.restrictions)
         .setDescription(
             session.restrictions
             .map(({ restriction }) => `${restriction.title}\n`+
@@ -754,102 +777,107 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
     });
 }
 
+const {
+    handle: handleSubCommand,
+    round: roundSubCommand,
+    high_scores: highScoreSubCommand,
+} = commandLocales.subcommandGroups;
 export default new SlashCommand({
-    name: 'session',
+    name: commandId,
     guildSpecific: false,
     hideFromHelp: false,
     slashcommand: new SlashCommandBuilder()
-        .setName('session')
-        .setDescription('Handle a game sessioon !')
+        .setName(commandLocales.name)
+        .setDescription(commandLocales.description)
         .addSubcommandGroup(g =>
-            g.setName('handle')
-            .setDescription('Handle creating, editing sessions')
-            .addSubcommand(c =>
-                c.setName('create')
-                .setDescription('Create a new session')
-                .addIntegerOption(o =>
-                    o.setName('goal')
-                    .setDescription('Number of rounds to win')
-                    .setRequired(true)
-                    .setMinValue(1)
+            g.setName(handleSubCommand.name)
+                .setDescription(handleSubCommand.description)
+                .addSubcommand(c =>
+                    c.setName(handleSubCommand.subcommands.create.name)
+                        .setDescription(handleSubCommand.subcommands.create.description)
+                        .addIntegerOption(o =>
+                            o.setName(handleSubCommand.subcommands.create.options.goal.name)
+                                .setDescription(handleSubCommand.subcommands.create.options.goal.description)
+                                .setRequired(true)
+                                .setMinValue(1)
+                        )
+                        .addIntegerOption(o =>
+                            o.setName(handleSubCommand.subcommands.create.options.restrictions.name)
+                                .setDescription(handleSubCommand.subcommands.create.options.restrictions.description)
+                                .setRequired(false)
+                                .setMinValue(1)
+                        )
                 )
-                .addIntegerOption(o =>
-                    o.setName('restrictions')
-                    .setDescription('Number of restrictions added per round')
-                    .setRequired(false)
-                    .setMinValue(1)
+                .addSubcommand(c =>
+                    c.setName(handleSubCommand.subcommands.invite.name)
+                        .setDescription(handleSubCommand.subcommands.invite.description)
+                        .addUserOption(o =>
+                            o.setName(handleSubCommand.subcommands.invite.options.user.name)
+                                .setDescription(handleSubCommand.subcommands.invite.options.user.description)
+                                .setRequired(true)
+                        )
                 )
-            )
-            .addSubcommand(c =>
-                c.setName('invite')
-                .setDescription('Invite a user to the session, will allow him to use commands')
-                .addUserOption(o =>
-                    o.setName('user')
-                    .setDescription('User to invite to the session')
-                    .setRequired(true)
+                .addSubcommand(c =>
+                    c.setName(handleSubCommand.subcommands.remove.name)
+                        .setDescription(handleSubCommand.subcommands.remove.description)
+                        .addUserOption(o =>
+                            o.setName(handleSubCommand.subcommands.remove.options.user.name)
+                                .setDescription(handleSubCommand.subcommands.remove.options.user.description)
+                                .setRequired(true)
+                        )
                 )
-            )
-            .addSubcommand(c =>
-                c.setName('remove')
-                .setDescription('Remove a user from the session')
-                .addUserOption(o =>
-                    o.setName('user')
-                    .setDescription('User to remove from the session')
-                    .setRequired(true)
+                .addSubcommand(c =>
+                    c.setName(handleSubCommand.subcommands.users.name)
+                        .setDescription(handleSubCommand.subcommands.users.description)
+                        .addBooleanOption(o =>
+                            o.setName(handleSubCommand.subcommands.users.options.ephemeral.name)
+                                .setDescription(handleSubCommand.subcommands.users.options.ephemeral.description)
+                                .setRequired(false)
+                        )
                 )
-            )
-            .addSubcommand(c =>
-                c.setName('users')
-                .setDescription('List the current users of a session')
-                .addBooleanOption(o =>
-                    o.setName('ephemeral')
-                    .setDescription('Show the list to all users in a channel (default: True)')
-                    .setRequired(false)
+                .addSubcommand(c =>
+                    c.setName(handleSubCommand.subcommands.start.name)
+                        .setDescription(handleSubCommand.subcommands.start.description)
                 )
-            )
-            .addSubcommand(c =>
-                c.setName('start')
-                .setDescription('Start a session, no users can be added')
-            )
-            .addSubcommand(c =>
-                c.setName('end')
-                .setDescription('Ends a session, will store and archive the results')
-            )
+                .addSubcommand(c =>
+                    c.setName(handleSubCommand.subcommands.end.name)
+                        .setDescription(handleSubCommand.subcommands.end.description)
+                )
         )
         .addSubcommandGroup(g =>
-            g.setName('round')
-            .setDescription('Handle a round result')
-            .addSubcommand(c =>
-                c.setName('end')
-                .setDescription('Mark the current round as a win')
-                .addBooleanOption(o =>
-                    o.setName('win')
-                    .setDescription('Was the round a victory')
-                    .setRequired(true)
+            g.setName(roundSubCommand.name)
+                .setDescription(roundSubCommand.description)
+                .addSubcommand(c =>
+                    c.setName(roundSubCommand.subcommands.end.name)
+                        .setDescription(roundSubCommand.subcommands.end.description)
+                        .addBooleanOption(o =>
+                            o.setName(roundSubCommand.subcommands.end.options.win.name)
+                                .setDescription(roundSubCommand.subcommands.end.options.win.description)
+                                .setRequired(true)
+                        )
+                        .addStringOption(o =>
+                            o.setName(roundSubCommand.subcommands.end.options.ghost.name)
+                                .setDescription(roundSubCommand.subcommands.end.options.ghost.description)
+                                .setAutocomplete(true)
+                                .setRequired(true)
+                        )
                 )
-                .addStringOption(o =>
-                    o.setName('ghost')
-                    .setDescription('The ghost that needed finding')
-                    .setAutocomplete(true)
-                    .setRequired(true)
+                .addSubcommand(c =>
+                    c.setName(roundSubCommand.subcommands.new.name)
+                        .setDescription(roundSubCommand.subcommands.new.description)
                 )
-            )
-            .addSubcommand(c =>
-                c.setName('new')
-                .setDescription('Start a new round')
-            )
-            .addSubcommand(c =>
-                c.setName('restrictions')
-                .setDescription('Show the current restrictions')
-            )
+                .addSubcommand(c =>
+                    c.setName(roundSubCommand.subcommands.restrictions.name)
+                        .setDescription(roundSubCommand.subcommands.restrictions.description)
+                )
         )
         .addSubcommandGroup(g =>
-            g.setName('high_scores')
-            .setDescription('Show best results and relevant data')
-            .addSubcommand(c =>
-                c.setName('unavailable')
-                .setDescription('unavailable')
-            )
+            g.setName(highScoreSubCommand.name)
+                .setDescription(highScoreSubCommand.description)
+                .addSubcommand(c =>
+                    c.setName(highScoreSubCommand.subcommands.unavailable.name)
+                        .setDescription(highScoreSubCommand.subcommands.unavailable.description)
+                )
         ),
     callback: async (logger, client, interaction) => {
         const command = interaction.options.getSubcommand(),
