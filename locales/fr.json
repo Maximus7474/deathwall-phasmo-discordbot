@@ -230,20 +230,16 @@
             "description": "L'enquête doit se faire dans le noir ou avec les lumières des pièces uniquement."
         },
         "broken_sprint": {
-            "name": "Sprint Cassé",
-            "description": "L'utilisation de la touche de sprint est interdite."
+            "name": "Vieillesse avancée",
+            "description": "L'époque du sprint est révolu, ralentissez."
         },
         "radio_silence": {
             "name": "Silence Radio",
             "description": "Vous avez oublié de charger vos radios, vous devez être ensemble pour vous parler."
         },
-        "candlelight_only": {
-            "name": "À la Bougie",
-            "description": "Les bougies et sources de feu sont les seules sources de lumière autorisées."
-        },
         "single_trip": {
             "name": "Aller Simple",
-            "description": "Une fois sorti du camion, vous ne pouvez plus y retourner (valable pour une manche)."
+            "description": "Une fois rentré dans la maison, vous pouvez seulement sortir pour finir le contrat (valable pour une manche)."
         },
         "forgotten_item": {
             "name": "Objet Oublié",
@@ -263,7 +259,7 @@
         },
         "blackout": {
             "name": "Blackout",
-            "description": "Le quartier est en panne de courant totale, vous ne pouvez pas utiliser les lumières de la maison."
+            "description": "Le quartier est en panne de courant totale, le disjoncteur est cassew."
         },
         "lower_tier_items": {
             "name": "Équipement Bas de Gamme",

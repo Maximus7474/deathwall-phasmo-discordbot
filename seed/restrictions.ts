@@ -6,7 +6,7 @@ async function seed() {
         { id: "no_flashlights", occurences: 1 },
         { id: "broken_sprint", occurences: 1 },
         { id: "radio_silence", occurences: 1 },
-        { id: "candlelight_only", occurences: 1 },
+        // { id: "candlelight_only", occurences: 1 }, removed
         { id: "single_trip", occurences: 2 },
         { id: "forgotten_item", occurences: 4 },
         { id: "shy_ghost", occurences: 3 },

@@ -230,16 +230,12 @@
             "description": "Investigation must be done in the dark or with room lights."
         },
         "broken_sprint": {
-            "name": "Broken Sprint",
-            "description": "No use of the sprint key allowed."
+            "name": "Old age",
+            "description": "Sprinting was in your youth, you can no longer do it."
         },
         "radio_silence": {
             "name": "Radio Silence",
             "description": "You've forgotten to charge your radios, you need to be together to talk."
-        },
-        "candlelight_only": {
-            "name": "Candlelight Only",
-            "description": "Firelights are the only allowed light source."
         },
         "single_trip": {
             "name": "Single Trip",
