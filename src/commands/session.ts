@@ -3,7 +3,7 @@ import type { Restriction } from '@prisma/client'
 import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
 import { prisma } from "../utils/prisma";
-import { getCommandLocalization, getGhost, Locale } from "../utils/localeLoader";
+import { getCommandLocalization, getGhost, Locale, type LocaleStructure } from "../utils/localeLoader";
 
 const commandId = 'session';
 const commandLocales = getCommandLocalization(commandId);
@@ -597,7 +597,7 @@ async function handleEndRound(logger: Logger, interaction: ChatInputCommandInter
     }
 
     const win = options.getBoolean('win', true);
-    const ghost = options.getString('ghost', true);
+    const ghost = options.getString('ghost', true) as keyof LocaleStructure['ghosts'];
 
     await prisma.sessionRound.update({
         data: {
@@ -630,7 +630,7 @@ async function handleEndRound(logger: Logger, interaction: ChatInputCommandInter
         .setDescription(
             responseLocale.embed.description
                 .replace('{state}', genericResponse[win ? 'win' : 'loss'])
-                .replace('{ghost}', ghost)
+                .replace('{ghost}', getGhost(ghost))
         )
         .setFooter({
             text: responseLocale.embed.footer
