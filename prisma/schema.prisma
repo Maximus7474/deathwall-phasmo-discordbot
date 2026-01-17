@@ -45,15 +45,15 @@ model SessionRound {
 }
 
 model SessionMember {
-  id       String  @id @default(cuid())
-  userId   String
-  isLeader Boolean @default(false)
+  id            String         @id @default(cuid())
+  userId        String
+  isLeader      Boolean        @default(false)
 
   roundsStarted SessionRound[] @relation("RoundsStartedBy")
   
   // Relation to Session
-  sessionId String
-  session   Session @relation(fields: [sessionId], references: [id])
+  sessionId     String
+  session       Session        @relation(fields: [sessionId], references: [id])
 }
 
 model Restriction {
