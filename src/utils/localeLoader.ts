@@ -56,3 +56,7 @@ export function getGhost(id?: string): string | Record<string, string> {
   }
   return Locale.ghosts[id as keyof LocaleStructure['ghosts']] ?? id;
 }
+
+export function getRestriction<K extends keyof LocaleStructure['restrictions']>(id: K): { name: string; description?: string } {
+  return Locale.restrictions[id] ?? { name: id };
+}
