@@ -1,6 +1,6 @@
 import { MessageFlags, SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import SlashCommand from "../classes/slash_command";
-import { getCommandLocalization, Locale } from "../utils/localeLoader";
+import { getCommandLocalization, Locale, localeKey } from "../utils/localeLoader";
 
 const commandId = 'help';
 const commandLocales = getCommandLocalization(commandId);
@@ -10,8 +10,10 @@ export default new SlashCommand({
     guildSpecific: false,
     hideFromHelp: true,
     slashcommand: new SlashCommandBuilder()
-        .setName(commandLocales.name)
-        .setDescription(commandLocales.description),
+        .setName(commandId)
+        .setNameLocalization(localeKey, commandLocales.name)
+        .setDescription('Display help text for commands')
+        .setDescriptionLocalization(localeKey, commandLocales.description),
     callback: async (logger, client, interaction) => {
         if (!interaction.inGuild()) {
             await interaction.reply({

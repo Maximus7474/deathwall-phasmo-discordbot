@@ -2,7 +2,7 @@ import { type ChatInputCommandInteraction, EmbedBuilder, MessageFlags, SlashComm
 import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
 import { prisma } from "../utils/prisma";
-import { getCommandLocalization, getGhost, getRestriction, Locale, type LocaleStructure } from "../utils/localeLoader";
+import { getCommandLocalization, getGhost, getRestriction, Locale, localeKey, type LocaleStructure } from "../utils/localeLoader";
 
 const commandId = 'session';
 const commandLocales = getCommandLocalization(commandId);
@@ -790,96 +790,146 @@ export default new SlashCommand({
     guildSpecific: false,
     hideFromHelp: false,
     slashcommand: new SlashCommandBuilder()
-        .setName(commandLocales.name)
-        .setDescription(commandLocales.description)
+    .setName('session')
+    .setNameLocalization(localeKey, commandLocales.name)
+    .setDescription('Handle a game session')
+    .setDescriptionLocalization(localeKey, commandLocales.description)
+        // handle
         .addSubcommandGroup(g =>
-            g.setName(handleSubCommand.name)
-                .setDescription(handleSubCommand.description)
+            g.setName('handle')
+                .setNameLocalization(localeKey, handleSubCommand.name)
+                .setDescription('Handle creating, editing sessions')
+                .setDescriptionLocalization(localeKey, handleSubCommand.description)
+                
                 .addSubcommand(c =>
-                    c.setName(handleSubCommand.subcommands.create.name)
-                        .setDescription(handleSubCommand.subcommands.create.description)
+                    c.setName('create')
+                        .setNameLocalization(localeKey, handleSubCommand.subcommands.create.name)
+                        .setDescription('Create a new session')
+                        .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.create.description)
                         .addIntegerOption(o =>
-                            o.setName(handleSubCommand.subcommands.create.options.goal.name)
-                                .setDescription(handleSubCommand.subcommands.create.options.goal.description)
+                            o.setName('goal')
+                                .setNameLocalization(localeKey, handleSubCommand.subcommands.create.options.goal.name)
+                                .setDescription('Number of rounds to win')
+                                .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.create.options.goal.description)
                                 .setRequired(true)
                                 .setMinValue(1)
                         )
                         .addIntegerOption(o =>
-                            o.setName(handleSubCommand.subcommands.create.options.restrictions.name)
-                                .setDescription(handleSubCommand.subcommands.create.options.restrictions.description)
+                            o.setName('restrictions')
+                                .setNameLocalization(localeKey, handleSubCommand.subcommands.create.options.restrictions.name)
+                                .setDescription('Number of restrictions added per round')
+                                .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.create.options.restrictions.description)
                                 .setRequired(false)
                                 .setMinValue(1)
                         )
                 )
                 .addSubcommand(c =>
-                    c.setName(handleSubCommand.subcommands.invite.name)
-                        .setDescription(handleSubCommand.subcommands.invite.description)
+                    c.setName('invite')
+                        .setNameLocalization(localeKey, handleSubCommand.subcommands.invite.name)
+                        .setDescription('Invite a user to the session')
+                        .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.invite.description)
                         .addUserOption(o =>
-                            o.setName(handleSubCommand.subcommands.invite.options.user.name)
-                                .setDescription(handleSubCommand.subcommands.invite.options.user.description)
+                            o.setName('user')
+                                .setNameLocalization(localeKey, handleSubCommand.subcommands.invite.options.user.name)
+                                .setDescription('User to invite to the session')
+                                .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.invite.options.user.description)
                                 .setRequired(true)
                         )
                 )
                 .addSubcommand(c =>
-                    c.setName(handleSubCommand.subcommands.remove.name)
-                        .setDescription(handleSubCommand.subcommands.remove.description)
+                    c.setName('remove')
+                        .setNameLocalization(localeKey, handleSubCommand.subcommands.remove.name)
+                        .setDescription('Remove a user from the session')
+                        .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.remove.description)
                         .addUserOption(o =>
-                            o.setName(handleSubCommand.subcommands.remove.options.user.name)
-                                .setDescription(handleSubCommand.subcommands.remove.options.user.description)
+                            o.setName('user')
+                                .setNameLocalization(localeKey, handleSubCommand.subcommands.remove.options.user.name)
+                                .setDescription('User to remove from the session')
+                                .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.remove.options.user.description)
                                 .setRequired(true)
                         )
                 )
                 .addSubcommand(c =>
-                    c.setName(handleSubCommand.subcommands.users.name)
-                        .setDescription(handleSubCommand.subcommands.users.description)
+                    c.setName('users')
+                        .setNameLocalization(localeKey, handleSubCommand.subcommands.users.name)
+                        .setDescription('List the current users of a session')
+                        .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.users.description)
                         .addBooleanOption(o =>
-                            o.setName(handleSubCommand.subcommands.users.options.ephemeral.name)
-                                .setDescription(handleSubCommand.subcommands.users.options.ephemeral.description)
+                            o.setName('ephemeral')
+                                .setNameLocalization(localeKey, handleSubCommand.subcommands.users.options.ephemeral.name)
+                                .setDescription('Show the list to all users in a channel')
+                                .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.users.options.ephemeral.description)
                                 .setRequired(false)
                         )
                 )
                 .addSubcommand(c =>
-                    c.setName(handleSubCommand.subcommands.start.name)
-                        .setDescription(handleSubCommand.subcommands.start.description)
+                    c.setName('start')
+                        .setNameLocalization(localeKey, handleSubCommand.subcommands.start.name)
+                        .setDescription('Start a session')
+                        .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.start.description)
                 )
                 .addSubcommand(c =>
-                    c.setName(handleSubCommand.subcommands.end.name)
-                        .setDescription(handleSubCommand.subcommands.end.description)
+                    c.setName('end')
+                        .setNameLocalization(localeKey, handleSubCommand.subcommands.end.name)
+                        .setDescription('Ends a session')
+                        .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.end.description)
                 )
         )
+
+        // round
         .addSubcommandGroup(g =>
-            g.setName(roundSubCommand.name)
-                .setDescription(roundSubCommand.description)
+            g.setName('round')
+                .setNameLocalization(localeKey, roundSubCommand.name)
+                .setDescription('Handle a round result')
+                .setDescriptionLocalization(localeKey, roundSubCommand.description)
+                
                 .addSubcommand(c =>
-                    c.setName(roundSubCommand.subcommands.end.name)
-                        .setDescription(roundSubCommand.subcommands.end.description)
+                    c.setName('end')
+                        .setNameLocalization(localeKey, roundSubCommand.subcommands.end.name)
+                        .setDescription('Mark the current round as a win')
+                        .setDescriptionLocalization(localeKey, roundSubCommand.subcommands.end.description)
                         .addBooleanOption(o =>
-                            o.setName(roundSubCommand.subcommands.end.options.win.name)
-                                .setDescription(roundSubCommand.subcommands.end.options.win.description)
+                            o.setName('win')
+                                .setNameLocalization(localeKey, roundSubCommand.subcommands.end.options.win.name)
+                                .setDescription('Was the round a victory')
+                                .setDescriptionLocalization(localeKey, roundSubCommand.subcommands.end.options.win.description)
                                 .setRequired(true)
                         )
                         .addStringOption(o =>
-                            o.setName(roundSubCommand.subcommands.end.options.ghost.name)
-                                .setDescription(roundSubCommand.subcommands.end.options.ghost.description)
+                            o.setName('ghost')
+                                .setNameLocalization(localeKey, roundSubCommand.subcommands.end.options.ghost.name)
+                                .setDescription('The ghost that needed finding')
+                                .setDescriptionLocalization(localeKey, roundSubCommand.subcommands.end.options.ghost.description)
                                 .setAutocomplete(true)
                                 .setRequired(true)
                         )
                 )
                 .addSubcommand(c =>
-                    c.setName(roundSubCommand.subcommands.new.name)
-                        .setDescription(roundSubCommand.subcommands.new.description)
+                    c.setName('new')
+                        .setNameLocalization(localeKey, roundSubCommand.subcommands.new.name)
+                        .setDescription('Start a new round')
+                        .setDescriptionLocalization(localeKey, roundSubCommand.subcommands.new.description)
                 )
                 .addSubcommand(c =>
-                    c.setName(roundSubCommand.subcommands.restrictions.name)
-                        .setDescription(roundSubCommand.subcommands.restrictions.description)
+                    c.setName('restrictions')
+                        .setNameLocalization(localeKey, roundSubCommand.subcommands.restrictions.name)
+                        .setDescription('Show the current restrictions')
+                        .setDescriptionLocalization(localeKey, roundSubCommand.subcommands.restrictions.description)
                 )
         )
+
+        // high scores
         .addSubcommandGroup(g =>
-            g.setName(highScoreSubCommand.name)
-                .setDescription(highScoreSubCommand.description)
+            g.setName('high_scores')
+                .setNameLocalization(localeKey, highScoreSubCommand.name)
+                .setDescription('Show best results and relevant data')
+                .setDescriptionLocalization(localeKey, highScoreSubCommand.description)
+                
                 .addSubcommand(c =>
-                    c.setName(highScoreSubCommand.subcommands.unavailable.name)
-                        .setDescription(highScoreSubCommand.subcommands.unavailable.description)
+                    c.setName('unavailable')
+                        .setNameLocalization(localeKey, highScoreSubCommand.subcommands.unavailable.name)
+                        .setDescription('Section currently unavailable')
+                        .setDescriptionLocalization(localeKey, highScoreSubCommand.subcommands.unavailable.description)
                 )
         ),
     callback: async (logger, client, interaction) => {
