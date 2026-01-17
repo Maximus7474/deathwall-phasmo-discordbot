@@ -4,7 +4,7 @@ import type Logger from "../utils/logger";
 import { prisma } from "../utils/prisma";
 import { getCommandLocalization, getGhost, getRestriction, Locale, localeKey, type LocaleStructure } from "../utils/localeLoader";
 import type { GhostType } from "@types";
-import { GHOST_TYPES } from "../utils/data";
+import { GAME_ITEMS, GHOST_TYPES } from "../utils/data";
 
 const commandId = 'session';
 const commandLocales = getCommandLocalization(commandId);
@@ -109,18 +109,39 @@ async function selectRestrictions(sessionId: string, restrictionCount: number): 
         }
     }
 
+    const restrictionTemplates = await prisma.restriction.findMany({
+        where: { id: { in: selectedIds } }
+    });
+
     const roundCount = await prisma.sessionRound.count({
         where: {
             sessionId,
         },
     });
 
-    await prisma.sessionRestriction.createMany({
-        data: selectedIds.map(id => ({
+    const sessionRestrictionsData = restrictionTemplates.map(template => {
+        const instanceMetadata = template.metadata ? JSON.parse(JSON.stringify(template.metadata)) : {};
+
+        if (   typeof instanceMetadata.forgottenItem === 'number'
+            || typeof instanceMetadata.soleItem === 'number'
+        ) {
+            const randomItem = GAME_ITEMS[Math.floor(Math.random() * GAME_ITEMS.length)];
+
+            if (instanceMetadata.forgottenItem) instanceMetadata.forgottenItem = randomItem;
+            if (instanceMetadata.soleItem) instanceMetadata.soleItem = randomItem;
+        }
+
+        return {
             number: roundCount + 1,
             sessionId: sessionId,
-            restrictionId: id,
-        })),
+            restrictionId: template.id,
+            metadata: instanceMetadata,
+            selected: true
+        };
+    });
+
+    await prisma.sessionRestriction.createMany({
+        data: sessionRestrictionsData,
     });
 
     const newRestrictions = restrictions.filter(res => selectedIds.includes(res.id));
@@ -129,6 +150,58 @@ async function selectRestrictions(sessionId: string, restrictionCount: number): 
         success: true,
         restrictions: newRestrictions,
     };
+}
+
+const baseValues = {
+    modifiers: {
+        evidence: 3,
+        tier: 3,
+        entitySpeed: 100,
+        playerSpeed: 100,
+        breaker: true,
+        sanity: 100,
+        sprint: true,
+    }
+}
+async function getGlobalRecap(sessionId: string) {
+    const activeRestrictions = await prisma.sessionRestriction.findMany({
+        where: { 
+            sessionId: sessionId,
+        }
+    });
+
+    const result = {
+        currentSettings: JSON.parse(JSON.stringify(baseValues.modifiers)),
+        removedItems: [] as string[],
+        special: [] as string[]
+    };
+
+    activeRestrictions.forEach((res) => {
+        const meta = res.metadata as Record<string, number | boolean | string> | null;
+        if (!meta) return;
+
+        for (const [key, value] of Object.entries(meta)) {
+            if (typeof value === 'number') {
+                if (key in result.currentSettings) {
+                    result.currentSettings[key] += value;
+                } else {
+                    result.currentSettings[key] = value;
+                }
+            } 
+            else if (typeof value === 'boolean') {
+                result.currentSettings[key] = value;
+            } 
+            else if (typeof value === 'string') {
+                if (['item', 'forgottenItem', 'soleItem'].includes(key)) {
+                    result.removedItems.push(value);
+                } else {
+                    result.special.push(`${key}: ${value}`);
+                }
+            }
+        }
+    });
+
+    return result;
 }
 
 async function handleCreate(logger: Logger, interaction: ChatInputCommandInteraction) {
