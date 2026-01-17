@@ -4,7 +4,7 @@ import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
 import { GHOST_TYPES } from "../utils/data";
 import { prisma } from "../utils/prisma";
-import { getCommandLocalization } from "../utils/localeLoader";
+import { getCommandLocalization, Locale } from "../utils/localeLoader";
 
 const commandId = 'session';
 const commandLocales = getCommandLocalization(commandId);
@@ -882,6 +882,14 @@ export default new SlashCommand({
     callback: async (logger, client, interaction) => {
         const command = interaction.options.getSubcommand(),
             commandGroup = interaction.options.getSubcommandGroup() as 'handle' | 'round' | 'high_scores';
+
+        if (!interaction.inGuild()) {
+            await interaction.reply({
+                content: Locale.generic_responses.not_in_guild,
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
 
         if (commandGroup === 'handle') {
             if (command === 'create') {
