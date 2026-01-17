@@ -118,8 +118,8 @@
             "response": {
                 "generic": {
                     "notinsession": "You're not in a session in this guild.",
-                        "win": "win",
-                        "loss": "loss"
+                    "win": "win",
+                    "loss": "loss"
                 },
                 "create": {
                     "insession": "You're already in an active session on this guild.\n-# session id: `{sessionid}`",
