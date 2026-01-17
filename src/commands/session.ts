@@ -429,6 +429,15 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
         },
     });
 
+    await prisma.session.update({
+        where: {
+            id: session.id,
+        },
+        data: {
+            startedAt: new Date(),
+        }
+    })
+
     const embeds = [
         // header embed
         new EmbedBuilder()
