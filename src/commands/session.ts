@@ -2,9 +2,8 @@ import { type ChatInputCommandInteraction, EmbedBuilder, MessageFlags, SlashComm
 import type { Restriction } from '@prisma/client'
 import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
-import { GHOST_TYPES } from "../utils/data";
 import { prisma } from "../utils/prisma";
-import { getCommandLocalization, Locale } from "../utils/localeLoader";
+import { getCommandLocalization, getGhost, Locale } from "../utils/localeLoader";
 
 const commandId = 'session';
 const commandLocales = getCommandLocalization(commandId);
@@ -933,14 +932,21 @@ export default new SlashCommand({
         const focusedOption = options.getFocused(true);
 
         if (focusedOption.name === 'ghost') {
-            const filtered = GHOST_TYPES
-                .filter(ghost =>
-                    ghost.toLowerCase().startsWith(focusedOption.value.toLowerCase())
-                )
+            const ghosts = getGhost();
+            const searchTerm = focusedOption.value.toLowerCase();
+
+            const filtered = Object.entries(ghosts)
+                .filter(([key, label]) => {
+                    return key.toLowerCase().includes(searchTerm) || 
+                        label.toLowerCase().includes(searchTerm);
+                })
                 .slice(0, 25);
 
             await interaction.respond(
-                filtered.map(setting => ({ name: setting, value: setting }))
+                filtered.map(([key, label]) => ({ 
+                    name: label,
+                    value: key
+                }))
             );
         }
     },
