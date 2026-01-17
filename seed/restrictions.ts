@@ -17,6 +17,8 @@ async function seed() {
         { title: "Random Map", occurences: 1, description: "Your driver has decided to drive where the dice tells him to go to." },
         { title: "Insane Hunters", occurences: 2, description: "You didn't attend therapy, start with less sanity." },
         { title: "Dodgy Medicine", occurences: 1, description: "Seems like you were scammed, your medication doesn't help you anymore." },
+        { title: "Sole Copy", occurences: 3, description: "There was only one item left, you'll have to share it (excl. torches & lighters)." },
+        { title: "Suspicious Contractors", occurences: 1, description: "Your contractor wants visual evidence of the ghost (handheld video/photo)." },
     ];
 
     const adminId = "SYSTEM_SEED";
