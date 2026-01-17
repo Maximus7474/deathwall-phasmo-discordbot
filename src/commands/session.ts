@@ -166,18 +166,17 @@ async function getGlobalRecap(sessionId: string) {
     const activeRestrictions = await prisma.sessionRestriction.findMany({
         where: { 
             sessionId: sessionId,
-        }
+        },
     });
 
     const result = {
         currentSettings: JSON.parse(JSON.stringify(baseValues.modifiers)),
-        removedItems: [] as string[],
-        special: [] as string[]
+        removedItems: [] as string[] | undefined,
     };
 
     activeRestrictions.forEach((res) => {
         const meta = res.metadata as Record<string, number | boolean | string> | null;
-        if (!meta) return;
+        if (!meta) return console.log('no meta in res', res.restrictionId);
 
         for (const [key, value] of Object.entries(meta)) {
             if (typeof value === 'number') {
@@ -192,13 +191,13 @@ async function getGlobalRecap(sessionId: string) {
             } 
             else if (typeof value === 'string') {
                 if (['item', 'forgottenItem', 'soleItem'].includes(key)) {
-                    result.removedItems.push(value);
-                } else {
-                    result.special.push(`${key}: ${value}`);
+                    result.removedItems!.push(value);
                 }
             }
         }
     });
+
+    if (result.removedItems!.length === 0) delete result.removedItems;
 
     return result;
 }
