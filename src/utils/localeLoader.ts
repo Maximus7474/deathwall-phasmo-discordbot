@@ -42,8 +42,8 @@ if (!primary || localeKey === 'en') {
 
 export { Locale };
 
-console.log(Locale);
-
-export function getCommandLocalizations(command: keyof LocaleStructure['commands']) {
+export function getCommandLocalization<K extends keyof LocaleStructure['commands']>(
+  command: K
+): LocaleStructure['commands'][K] {
   return Locale.commands[command];
 }
