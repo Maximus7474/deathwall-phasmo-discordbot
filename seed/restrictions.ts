@@ -3,22 +3,22 @@ const prisma = new PrismaClient();
 
 async function seed() {
     const restrictions = [
-        { title: "No Flashlights", occurences: 1, description: "Investigation must be done in the dark or with room lights." },
-        { title: "Broken Sprint", occurences: 1, description: "No use of the sprint key allowed." },
-        { title: "Radio Silence", occurences: 1, description: "You've forgotten to charge your radios, you need to be together to talk." },
-        { title: "Candlelight Only", occurences: 1, description: "Firelights are the only allowed light source." },
-        { title: "Single Trip", occurences: 2, description: "Once you step outside the truck, you cannot go back in (only for one round)." },
-        { title: "Forgotten Item", occurences: 4, description: "You've forgotten to restock on a random item, you'll have to work without it." },
-        { title: "Shy Ghost", occurences: 3, description: "The ghost will share one less evidence, it really doesn't want to be found." },
-        { title: "Athletic Ghost", occurences: 3, description: "The ghost seems to have been an athlete, it's 25% faster !" },
-        { title: "Untrained Hunters", occurences: 2, description: "You were told to go to the gym, you've lost 25% sprint capacity!" },
-        { title: "Blackout", occurences: 1, description: "The country is in a total blackout, you can't use the lights in the house." },
-        { title: "Lower Tier Items", occurences: 2, description: "You have to remove a tier level from your gear." },
-        { title: "Random Map", occurences: 1, description: "Your driver has decided to drive where the dice tells him to go to." },
-        { title: "Insane Hunters", occurences: 2, description: "You didn't attend therapy, start with less sanity." },
-        { title: "Dodgy Medicine", occurences: 1, description: "Seems like you were scammed, your medication doesn't help you anymore." },
-        { title: "Sole Copy", occurences: 3, description: "There was only one item left, you'll have to share it (excl. torches & lighters)." },
-        { title: "Suspicious Contractors", occurences: 1, description: "Your contractor wants visual evidence of the ghost (handheld video/photo)." },
+        { id: "no_flashlights", occurences: 1 },
+        { id: "broken_sprint", occurences: 1 },
+        { id: "radio_silence", occurences: 1 },
+        { id: "candlelight_only", occurences: 1 },
+        { id: "single_trip", occurences: 2 },
+        { id: "forgotten_item", occurences: 4 },
+        { id: "shy_ghost", occurences: 3 },
+        { id: "athletic_ghost", occurences: 3 },
+        { id: "untrained_hunters", occurences: 2 },
+        { id: "blackout", occurences: 1 },
+        { id: "lower_tier_items", occurences: 2 },
+        { id: "random_map", occurences: 1 },
+        { id: "insane_hunters", occurences: 2 },
+        { id: "dodgy_medicine", occurences: 1 },
+        { id: "sole_copy", occurences: 3 },
+        { id: "suspicious_contractors", occurences: 1 },
     ];
 
     const adminId = "SYSTEM_SEED";
@@ -27,8 +27,7 @@ async function seed() {
         restrictions.map((res) =>
             prisma.restriction.create({
                 data: {
-                    title: res.title,
-                    description: res.description,
+                    id: res.id,
                     occurences: res.occurences,
                     addedBy: adminId,
                 },
