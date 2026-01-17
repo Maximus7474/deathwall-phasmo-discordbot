@@ -1,14 +1,16 @@
 import { type ChatInputCommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
-import type { Restriction } from '@prisma/client'
 import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
 import { prisma } from "../utils/prisma";
-import { getCommandLocalization, getGhost, Locale, type LocaleStructure } from "../utils/localeLoader";
+import { getCommandLocalization, getGhost, getRestriction, Locale, type LocaleStructure } from "../utils/localeLoader";
 
 const commandId = 'session';
 const commandLocales = getCommandLocalization(commandId);
 
-type CleanRestriction = Omit<Restriction, 'addedBy' | 'addedAt'>;
+type CleanRestriction = {
+    id: string;
+    occurences: number | null;
+};
 type ResSelectionResponse = {
     success: false;
     message: string;
@@ -63,8 +65,6 @@ async function selectRestrictions(sessionId: string, restrictionCount: number): 
         select: {
             id: true,
             occurences: true,
-            title: true,
-            description: true,
             addedAt: false,
             addedBy: false,
         }
@@ -453,9 +453,11 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
         .setTitle(responseLocale.embed.title2)
         .setDescription(
             roundStarter.restrictions
-            .map(res => `${res.title}\n`+
-                (res.description ? `> ${res.description}` : '') + '\n'
-            )
+            .map(res => {
+                const { name, description } = getRestriction(res.id as keyof LocaleStructure['restrictions']);
+                
+                return `${name}\n`+ (description ? `> ${description}` : '') + '\n'
+            })
             .join('\n')
         )
     ];
@@ -710,9 +712,11 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
         .setDescription(
             responseLocale.embed.description + '\n'+
             roundData.restrictions
-            .map(res => `${res.title}\n`+
-                (res.description ? `> ${res.description}` : '') + '\n'
-            )
+            .map((res) => {
+                const { name, description } = getRestriction(res.id as keyof LocaleStructure['restrictions']);
+                
+                return `${name}\n`+ (description ? `> ${description}` : '') + '\n'
+            })
             .join('\n')
         );
 
@@ -746,8 +750,6 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
                     restriction: {
                         select: {
                             id: true,
-                            title: true,
-                            description: true,
                         },
                     },
                 },
@@ -765,9 +767,11 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
         .setTitle(responseLocale.restrictions)
         .setDescription(
             session.restrictions
-            .map(({ restriction }) => `${restriction.title}\n`+
-                (restriction.description ? `> ${restriction.description}` : '')
-            )
+            .map(({ restriction }) => {
+                const { name, description } = getRestriction(restriction.id as keyof LocaleStructure['restrictions']);
+                
+                return `${name}\n`+ (description ? `> ${description}` : '') + '\n'
+            })
             .join('\n')
         );
 
