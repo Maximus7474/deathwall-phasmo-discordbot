@@ -10,8 +10,8 @@ export default new SlashCommand({
     guildSpecific: false,
     hideFromHelp: false,
     slashcommand: new SlashCommandBuilder()
-        .setName('ping')
-        .setDescription('Ping the bot to check if it is alive !'),
+        .setName(commandLocales.name)
+        .setDescription(commandLocales.description),
     callback: async (logger, client, interaction) => {
         logger.success('Successfully received usage of /ping from discord API');
         await interaction.reply({
