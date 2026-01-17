@@ -1,0 +1,293 @@
+{
+    "commands": {
+        "help": {
+            "name": "help",
+            "description": "Display help text for commands",
+            "response": {
+                "title": "Application commands"
+            }
+        },
+        "ping": {
+            "name": "ping",
+            "description": "Ping the bot to check if it is alive !",
+            "response": {
+                "text": "Pong !"
+            }
+        },
+        "session": {
+            "name": "session",
+            "description": "Handle a game session",
+            "subcommandGroups": {
+                "handle": {
+                    "name": "handle",
+                    "description": "Handle creating, editing sessions",
+                    "subcommands": {
+                        "create": {
+                            "name": "create",
+                            "description": "Create a new session",
+                            "options": {
+                                "goal": {
+                                    "name": "goal",
+                                    "description": "Number of rounds to win"
+                                },
+                                "restrictions": {
+                                    "name": "restrictions",
+                                    "description": "Number of restrictions added per round"
+                                }
+                            }
+                        },
+                        "invite": {
+                            "name": "invite",
+                            "description": "Invite a user to the session, will allow him to use commands",
+                            "options": {
+                                "user": {
+                                    "name": "user",
+                                    "description": "User to invite to the session"
+                                }
+                            }
+                        },
+                        "remove": {
+                            "name": "remove",
+                            "description": "Remove a user from the session",
+                            "options": {
+                                "user": {
+                                    "name": "user",
+                                    "description": "User to remove from the session"
+                                }
+                            }
+                        },
+                        "users": {
+                            "name": "users",
+                            "description": "List the current users of a session",
+                            "options": {
+                                "ephemeral": {
+                                    "name": "ephemeral",
+                                    "description": "Show the list to all users in a channel (default: True)"
+                                }
+                            }
+                        },
+                        "start": {
+                            "name": "start",
+                            "description": "Start a session, no users can be added"
+                        },
+                        "end": {
+                            "name": "end",
+                            "description": "Ends a session, will store and archive the results"
+                        }
+                    }
+                },
+                "round": {
+                    "name": "round",
+                    "description": "Handle a round result",
+                    "subcommands": {
+                        "end": {
+                            "name": "end",
+                            "description": "Mark the current round as a win",
+                            "options": {
+                                "win": {
+                                    "name": "win",
+                                    "description": "Was the round a victory"
+                                },
+                                "ghost": {
+                                    "name": "ghost",
+                                    "description": "The ghost that needed finding"
+                                }
+                            }
+                        },
+                        "new": {
+                            "name": "new",
+                            "description": "Start a new round"
+                        },
+                        "restrictions": {
+                            "name": "restrictions",
+                            "description": "Show the current restrictions"
+                        }
+                    }
+                },
+                "high_scores": {
+                    "name": "high_scores",
+                    "description": "Show best results and relevant data",
+                    "subcommands": {
+                        "unavailable": {
+                            "name": "unavailable",
+                            "description": "unavailable"
+                        }
+                    }
+                }
+            },
+            "response": {
+                "generic": {
+                    "notinsession": "You're not in a session in this guild.",
+                    "win": "win",
+                    "loss": "loss"
+                },
+                "create": {
+                    "insession": "You're already in an active session on this guild.\n-# session id: `{sessionid}`",
+                    "createdembed": {
+                        "title": "New session created",
+                        "content": "You can now finish configure it using the following commands:\n* `/session handle invite` to add other discord users to the session\n* `/session handle remove` to remove discord users from the session\n* `/session handle users` to display current users in the session\n* `/session handle start` to start the session\n\nInvited users can also use the following commands:\n* `/session round start`\n* `/session round end` close a round and inform the outcome\n* `/session round restrictions` list the current restrictions on the session\n",
+                        "footer": "Session id: {session}"
+                    }
+                },
+                "inviteuser": {
+                    "notlead": "You're not leading a session in this guild, you can not invite people to it.",
+                    "userinsession": "User {username} is already in a session on this guild, he can not be invited to this one.",
+                    "useradded": "{username} was added to the session."
+                },
+                "removeuser": {
+                    "notleading": "You're not leading a session in this guild, you can not remove people from one.",
+                    "usernotinsession": "User {username} is not in your session.",
+                    "userremoved": "User {username} was removed from your session."
+                },
+                "listusers": {
+                    "embed": {
+                        "title": "Session members",
+                        "content": "Start: {start}\nProgress: {progress}\nNew restrictions per round: {restrictions}",
+                        "notstarted": "not started",
+                        "members": "Members",
+                        "lead": ":cook: {mention}",
+                        "member": "{mention}"
+                    }
+                },
+                "startsession": {
+                    "unabletogenerate": "Unable to generate restrictions for first round:",
+                    "embed": {
+                        "title1": "Session started",
+                        "description1": "Goal: {goal}\nNew restrictions per round: {restrictions}",
+                        "members": "Members",
+                        "lead": ":cook: {mention}",
+                        "member": "{mention}",
+                        "title2": "First Restrictions"
+                    }
+                },
+                "endsession": {
+                    "activeround": "You have an active round, use `/session round end` to determine the final outcome of it.",
+                    "embed": {
+                        "title": "Session has ended",
+                        "description": "This session concluded in a {state}.\nScore: {wins} wins - {losses} losses",
+                        "members": "Members",
+                        "lead": ":cook: {mention}",
+                        "member": "{mention}"
+                    }
+                },
+                "endround": {
+                    "noactiveround": "You don't have an active round, use `/session round start` to start a new round.",
+                    "embed": {
+                        "title": "Round finished",
+                        "description": "Round resulted in a {state}.\nGhost type: {ghost}",
+                        "footer": "To start a new round use /round start"
+                    }
+                },
+                "newround": {
+                    "activeround": "You have an active round, use `/session round end` to determine the final outcome of it.",
+                    "unabletogenerate": "Unable to generate restrictions for round:",
+                    "embed": {
+                        "title": "Restrictions",
+                        "description": "New restrictions:"
+                    }
+                },
+                "restrictions": {
+                    "restrictions": "Restrictions"
+                }
+            }
+        }
+    },
+    "generic_responses": {
+        "not_in_guild": "This command only works in a server."
+    },
+    "ghosts": {
+        "banshee": "Banshee",
+        "dayan": "Dayan",
+        "demon": "Demon",
+        "deogen": "Deogen",
+        "gallu": "Gallu",
+        "goryo": "Goryo",
+        "hantu": "Hantu",
+        "jinn": "Jinn",
+        "mare": "Mare",
+        "moroi": "Moroi",
+        "myling": "Myling",
+        "obake": "Obake",
+        "obambo": "Obambo",
+        "oni": "Oni",
+        "onryo": "Onryo",
+        "phantom": "Phantom",
+        "poltergeist": "Poltergeist",
+        "raiju": "Raiju",
+        "revenant": "Revenant",
+        "shade": "Shade",
+        "spirit": "Spirit",
+        "thaye": "Thaye",
+        "themimic": "The Mimic",
+        "thetwins": "The Twins",
+        "wraith": "Wraith",
+        "yokai": "Yokai",
+        "yurei": "Yurei"
+    },
+    "restrictions": {
+        "no_flashlights": {
+            "name": "No Flashlights",
+            "description": "Investigation must be done in the dark or with room lights."
+        },
+        "broken_sprint": {
+            "name": "Broken Sprint",
+            "description": "No use of the sprint key allowed."
+        },
+        "radio_silence": {
+            "name": "Radio Silence",
+            "description": "You've forgotten to charge your radios, you need to be together to talk."
+        },
+        "candlelight_only": {
+            "name": "Candlelight Only",
+            "description": "Firelights are the only allowed light source."
+        },
+        "single_trip": {
+            "name": "Single Trip",
+            "description": "Once you step outside the truck, you cannot go back in (only for one round)."
+        },
+        "forgotten_item": {
+            "name": "Forgotten Item",
+            "description": "You've forgotten to restock on a random item, you'll have to work without it."
+        },
+        "shy_ghost": {
+            "name": "Shy Ghost",
+            "description": "The ghost will share one less evidence, it really doesn't want to be found."
+        },
+        "athletic_ghost": {
+            "name": "Athletic Ghost",
+            "description": "The ghost seems to have been an athlete, it's 25% faster !"
+        },
+        "untrained_hunters": {
+            "name": "Untrained Hunters",
+            "description": "You were told to go to the gym, you've lost 25% sprint capacity!"
+        },
+        "blackout": {
+            "name": "Blackout",
+            "description": "The country is in a total blackout, you can't use the lights in the house."
+        },
+        "lower_tier_items": {
+            "name": "Lower Tier Items",
+            "description": "You have to remove a tier level from your gear."
+        },
+        "random_map": {
+            "name": "Random Map",
+            "description": "Your driver has decided to drive where the dice tells him to go to."
+        },
+        "insane_hunters": {
+            "name": "Insane Hunters",
+            "description": "You didn't attend therapy, start with less sanity."
+        },
+        "dodgy_medicine": {
+            "name": "Dodgy Medicine",
+            "description": "Seems like you were scammed, your medication doesn't help you anymore."
+        },
+        "sole_copy": {
+            "name": "Sole Copy",
+            "description": "There was only one item left, you'll have to share it (excl. torches & lighters)."
+        },
+        "suspicious_contractors": {
+            "name": "Suspicious Contractors",
+            "description": "Your contractor wants visual evidence of the ghost (handheld video/photo)."
+        }
+    }
+}

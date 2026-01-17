@@ -1,0 +1,293 @@
+{
+    "commands": {
+        "help": {
+            "name": "aide",
+            "description": "Affiche le texte d'aide pour les commandes",
+            "response": {
+                "title": "Commandes de l'application"
+            }
+        },
+        "ping": {
+            "name": "ping",
+            "description": "Ping le bot pour vérifier s'il est en ligne !",
+            "response": {
+                "text": "Pong !"
+            }
+        },
+        "session": {
+            "name": "session",
+            "description": "Gérer une session de jeu",
+            "subcommandGroups": {
+                "handle": {
+                    "name": "gestion",
+                    "description": "Gérer la création et la modification des sessions",
+                    "subcommands": {
+                        "create": {
+                            "name": "créer",
+                            "description": "Créer une nouvelle session",
+                            "options": {
+                                "goal": {
+                                    "name": "objectif",
+                                    "description": "Nombre de manches à gagner"
+                                },
+                                "restrictions": {
+                                    "name": "restrictions",
+                                    "description": "Nombre de restrictions ajoutées par manche"
+                                }
+                            }
+                        },
+                        "invite": {
+                            "name": "inviter",
+                            "description": "Inviter un utilisateur à la session",
+                            "options": {
+                                "user": {
+                                    "name": "utilisateur",
+                                    "description": "Utilisateur à inviter"
+                                }
+                            }
+                        },
+                        "remove": {
+                            "name": "retirer",
+                            "description": "Retirer un utilisateur de la session",
+                            "options": {
+                                "user": {
+                                    "name": "utilisateur",
+                                    "description": "Utilisateur à retirer"
+                                }
+                            }
+                        },
+                        "users": {
+                            "name": "membres",
+                            "description": "Lister les membres actuels d'une session",
+                            "options": {
+                                "ephemeral": {
+                                    "name": "éphémère",
+                                    "description": "Afficher la liste à tous les utilisateurs (Défaut : Vrai)"
+                                }
+                            }
+                        },
+                        "start": {
+                            "name": "démarrer",
+                            "description": "Démarrer la session (plus aucun membre ne pourra être ajouté)"
+                        },
+                        "end": {
+                            "name": "terminer",
+                            "description": "Terminer la session et archiver les résultats"
+                        }
+                    }
+                },
+                "round": {
+                    "name": "manche",
+                    "description": "Gérer le résultat d'une manche",
+                    "subcommands": {
+                        "end": {
+                            "name": "terminer",
+                            "description": "Marquer la manche actuelle comme terminée",
+                            "options": {
+                                "win": {
+                                    "name": "victoire",
+                                    "description": "La manche était-elle une victoire ?"
+                                },
+                                "ghost": {
+                                    "name": "entité",
+                                    "description": "L'entité qu'il fallait identifier"
+                                }
+                            }
+                        },
+                        "new": {
+                            "name": "nouvelle",
+                            "description": "Démarrer une nouvelle manche"
+                        },
+                        "restrictions": {
+                            "name": "restrictions",
+                            "description": "Afficher les restrictions actuelles"
+                        }
+                    }
+                },
+                "high_scores": {
+                    "name": "classement",
+                    "description": "Afficher les meilleurs résultats",
+                    "subcommands": {
+                        "unavailable": {
+                            "name": "indisponible",
+                            "description": "indisponible"
+                        }
+                    }
+                }
+            },
+            "response": {
+                "generic": {
+                    "notinsession": "Vous ne participez à aucune session sur ce serveur.",
+                    "win": "victoire",
+                    "loss": "défaite"
+                },
+                "create": {
+                    "insession": "Vous avez déjà une session active sur ce serveur.\n-# id de session : `{sessionid}`",
+                    "createdembed": {
+                        "title": "Nouvelle session créée",
+                        "content": "Vous pouvez maintenant finir de la configurer avec les commandes suivantes :\n* `/session gestion inviter` pour ajouter d'autres utilisateurs Discord\n* `/session gestion retirer` pour retirer des utilisateurs\n* `/session gestion membres` pour afficher les membres actuels\n* `/session gestion démarrer` pour lancer la session\n\nLes utilisateurs invités peuvent aussi utiliser :\n* `/session manche nouvelle` pour lancer une manche\n* `/session manche terminer` pour clôturer une manche\n* `/session manche restrictions` pour voir les contraintes en cours\n",
+                        "footer": "ID de session : {session}"
+                    }
+                },
+                "inviteuser": {
+                    "notlead": "Vous ne dirigez pas de session sur ce serveur, vous ne pouvez pas inviter de joueurs.",
+                    "userinsession": "L'utilisateur {username} est déjà dans une session, il ne peut pas être invité.",
+                    "useradded": "{username} a été ajouté à la session."
+                },
+                "removeuser": {
+                    "notleading": "Vous ne dirigez pas de session sur ce serveur, vous ne pouvez pas retirer de joueurs.",
+                    "usernotinsession": "L'utilisateur {username} ne fait pas partie de votre session.",
+                    "userremoved": "L'utilisateur {username} a été retiré de votre session."
+                },
+                "listusers": {
+                    "embed": {
+                        "title": "Membres de la session",
+                        "content": "Début : {start}\nProgression : {progress}\nNouvelles restrictions par manche : {restrictions}",
+                        "notstarted": "non démarrée",
+                        "members": "Membres",
+                        "lead": ":cook: {mention} (Chef)",
+                        "member": "{mention}"
+                    }
+                },
+                "startsession": {
+                    "unabletogenerate": "Impossible de générer les restrictions pour la première manche :",
+                    "embed": {
+                        "title1": "Session démarrée",
+                        "description1": "Objectif : {goal}\nNouvelles restrictions par manche : {restrictions}",
+                        "members": "Membres",
+                        "lead": ":cook: {mention}",
+                        "member": "{mention}",
+                        "title2": "Premières Restrictions"
+                    }
+                },
+                "endsession": {
+                    "activeround": "Une manche est en cours, utilisez `/session manche terminer` pour déterminer son issue finale.",
+                    "embed": {
+                        "title": "La session est terminée",
+                        "description": "Cette session s'est conclue par une {state}.\nScore : {wins} victoires - {losses} défaites",
+                        "members": "Membres",
+                        "lead": ":cook: {mention}",
+                        "member": "{mention}"
+                    }
+                },
+                "endround": {
+                    "noactiveround": "Aucune manche n'est en cours, utilisez `/session manche nouvelle` pour en démarrer une.",
+                    "embed": {
+                        "title": "Manche terminée",
+                        "description": "Résultat : {state}.\nType d'entité : {ghost}",
+                        "footer": "Pour démarrer une nouvelle manche, utilisez /manche nouvelle"
+                    }
+                },
+                "newround": {
+                    "activeround": "Une manche est en cours, utilisez `/session manche terminer` pour la clôturer avant d'en lancer une autre.",
+                    "unabletogenerate": "Impossible de générer les restrictions pour cette manche :",
+                    "embed": {
+                        "title": "Restrictions",
+                        "description": "Nouvelles restrictions :"
+                    }
+                },
+                "restrictions": {
+                    "restrictions": "Restrictions"
+                }
+            }
+        }
+    },
+    "generic_responses": {
+        "not_in_guild": "Cette commande ne marche que sur un serveur."
+    },
+    "ghosts": {
+        "banshee": "Banshee",
+        "dayan": "Dayan",
+        "demon": "Demon",
+        "deogen": "Deogen",
+        "gallu": "Gallu",
+        "goryo": "Goryo",
+        "hantu": "Hantu",
+        "jinn": "Jinn",
+        "mare": "Mare",
+        "moroi": "Moroi",
+        "myling": "Myling",
+        "obake": "Obake",
+        "obambo": "Obambo",
+        "oni": "Oni",
+        "onryo": "Onryo",
+        "phantom": "Phantom",
+        "poltergeist": "Poltergeist",
+        "raiju": "Raiju",
+        "revenant": "Revenant",
+        "shade": "Shade",
+        "spirit": "Spirit",
+        "thaye": "Thaye",
+        "themimic": "The Mimic",
+        "thetwins": "The Twins",
+        "wraith": "Wraith",
+        "yokai": "Yokai",
+        "yurei": "Yurei"
+    },
+    "restrictions": {
+        "no_flashlights": {
+            "name": "Pas de Lampes de Poche",
+            "description": "L'enquête doit se faire dans le noir ou avec les lumières des pièces uniquement."
+        },
+        "broken_sprint": {
+            "name": "Sprint Cassé",
+            "description": "L'utilisation de la touche de sprint est interdite."
+        },
+        "radio_silence": {
+            "name": "Silence Radio",
+            "description": "Vous avez oublié de charger vos radios, vous devez être ensemble pour vous parler."
+        },
+        "candlelight_only": {
+            "name": "À la Bougie",
+            "description": "Les bougies et sources de feu sont les seules sources de lumière autorisées."
+        },
+        "single_trip": {
+            "name": "Aller Simple",
+            "description": "Une fois sorti du camion, vous ne pouvez plus y retourner (valable pour une manche)."
+        },
+        "forgotten_item": {
+            "name": "Objet Oublié",
+            "description": "Vous avez oublié de racheter un objet aléatoire, vous devrez faire sans."
+        },
+        "shy_ghost": {
+            "name": "Entité Timide",
+            "description": "L'entité donnera une preuve de moins, elle ne veut vraiment pas être trouvée."
+        },
+        "athletic_ghost": {
+            "name": "Entité Athlétique",
+            "description": "L'entité semble avoir été une athlète, elle est 25% plus rapide !"
+        },
+        "untrained_hunters": {
+            "name": "Chasseurs Non Entraînés",
+            "description": "On vous avait dit d'aller à la salle, vous avez perdu 25% de capacité de sprint !"
+        },
+        "blackout": {
+            "name": "Blackout",
+            "description": "Le quartier est en panne de courant totale, vous ne pouvez pas utiliser les lumières de la maison."
+        },
+        "lower_tier_items": {
+            "name": "Équipement Bas de Gamme",
+            "description": "Vous devez réduire d'un niveau (Tier) le palier de votre équipement."
+        },
+        "random_map": {
+            "name": "Carte Aléatoire",
+            "description": "Votre chauffeur a décidé de conduire là où les dés lui disent d'aller."
+        },
+        "insane_hunters": {
+            "name": "Chasseurs Instables",
+            "description": "Vous n'êtes pas allé en thérapie, vous commencez avec moins de santé mentale."
+        },
+        "dodgy_medicine": {
+            "name": "Médicaments Douteux",
+            "description": "On dirait que vous vous êtes fait arnaquer, vos médicaments ne font plus effet."
+        },
+        "sole_copy": {
+            "name": "Exemplaire Unique",
+            "description": "Il ne restait qu'un seul exemplaire, vous devrez le partager (hors lampes et briquets)."
+        },
+        "suspicious_contractors": {
+            "name": "Contracteurs Suspicieux",
+            "description": "Votre employeur veut une preuve visuelle de l'entité (caméscope/photo)."
+        }
+    }
+}

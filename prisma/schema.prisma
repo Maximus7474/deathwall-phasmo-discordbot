@@ -57,9 +57,7 @@ model SessionMember {
 }
 
 model Restriction {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
+  id          String   @id
   occurences  Int?
   addedBy     String
   addedAt     DateTime @default(now())
