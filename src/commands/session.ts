@@ -3,6 +3,8 @@ import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
 import { prisma } from "../utils/prisma";
 import { getCommandLocalization, getGhost, getRestriction, Locale, localeKey, type LocaleStructure } from "../utils/localeLoader";
+import type { GhostType } from "@types";
+import { GHOST_TYPES } from "../utils/data";
 
 const commandId = 'session';
 const commandLocales = getCommandLocalization(commandId);
@@ -609,7 +611,15 @@ async function handleEndRound(logger: Logger, interaction: ChatInputCommandInter
     }
 
     const win = options.getBoolean('win', true);
-    const ghost = options.getString('ghost', true) as keyof LocaleStructure['ghosts'];
+    const ghostInput = options.getString('ghost', true);
+
+    if (!GHOST_TYPES.includes(ghostInput as GhostType)) {
+        return interaction.editReply({
+            content: responseLocale.invalidghost,
+        });
+    }
+
+    const ghost = ghostInput as GhostType;
 
     await prisma.sessionRound.update({
         data: {
