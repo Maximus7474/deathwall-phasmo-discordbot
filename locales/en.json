@@ -194,5 +194,34 @@
     },
     "generic_responses": {
         "not_in_guild": "This command only works in a server."
+    },
+    "ghosts": {
+        "banshee": "Banshee",
+        "dayan": "Dayan",
+        "demon": "Demon",
+        "deogen": "Deogen",
+        "gallu": "Gallu",
+        "goryo": "Goryo",
+        "hantu": "Hantu",
+        "jinn": "Jinn",
+        "mare": "Mare",
+        "moroi": "Moroi",
+        "myling": "Myling",
+        "obake": "Obake",
+        "obambo": "Obambo",
+        "oni": "Oni",
+        "onryo": "Onryo",
+        "phantom": "Phantom",
+        "poltergeist": "Poltergeist",
+        "raiju": "Raiju",
+        "revenant": "Revenant",
+        "shade": "Shade",
+        "spirit": "Spirit",
+        "thaye": "Thaye",
+        "the mimic": "The Mimic",
+        "the twins": "The Twins",
+        "wraith": "Wraith",
+        "yokai": "Yokai",
+        "yurei": "Yurei"
     }
 }
