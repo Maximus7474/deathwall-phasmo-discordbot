@@ -285,5 +285,28 @@
             "name": "Contracteurs Suspicieux",
             "description": "Votre employeur veut une preuve visuelle de l'entité (caméscope/photo)."
         }
+    },
+    "items": {
+        "emf_reader": "Lecteur EMF",
+        "spirit_box": "Spirit Box",
+        "thermometer": "Thermomètre",
+        "dots_projector": "Projecteur D.O.T.S",
+        "ghost_writing_book": "Livre d'écriture fantomatique",
+        "video_camera": "Caméra vidéo",
+        "uv_light": "Lampe UV",
+        "flashlight": "Lampe de poche",
+        "strong_flashlight": "Lampe de poche puissante",
+        "crucifix": "Crucifix",
+        "smudge_sticks": "Encens",
+        "sanity_medication": "Remède de santé mentale",
+        "motion_sensor": "Capteur de mouvement",
+        "sound_sensor": "Capteur sonore",
+        "salt": "Sel",
+        "parabolic_microphone": "Microphone parabolique",
+        "photo_camera": "Appareil photo",
+        "firelight": "Bougie / Lampe à huile",
+        "igniter": "Briquet",
+        "tripod": "Trépied",
+        "head_gear": "Équipement de tête"
     }
 }

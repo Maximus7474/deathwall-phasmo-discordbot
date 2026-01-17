@@ -285,5 +285,28 @@
             "name": "Suspicious Contractors",
             "description": "Your contractor wants visual evidence of the ghost (handheld video/photo)."
         }
+    },
+    "items": {
+        "emf_reader": "EMF Reader",
+        "spirit_box": "Spirit Box",
+        "thermometer": "Thermometer",
+        "dots_projector": "D.O.T.S. Projector",
+        "ghost_writing_book": "Ghost Writing Book",
+        "video_camera": "Video Camera",
+        "uv_light": "UV Light",
+        "flashlight": "Flashlight",
+        "strong_flashlight": "Strong Flashlight",
+        "crucifix": "Crucifix",
+        "smudge_sticks": "Incense (Smudge Sticks)",
+        "sanity_medication": "Sanity Medication",
+        "motion_sensor": "Motion Sensor",
+        "sound_sensor": "Sound Sensor",
+        "salt": "Salt Shaker",
+        "parabolic_microphone": "Parabolic Microphone",
+        "photo_camera": "Photo Camera",
+        "firelight": "Firelight",
+        "igniter": "Igniter",
+        "tripod": "Tripod",
+        "head_gear": "Head Gear"
     }
 }
