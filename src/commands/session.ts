@@ -542,7 +542,9 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
                 return `${name}\n`+ (description ? `> ${description}` : '') + '\n'
             })
             .join('\n')
-        )
+        ),
+        new EmbedBuilder()
+        .setDescription(`\`\`\`json\n${JSON.stringify(await getGlobalRecap(session.id), null, 4)}\n\`\`\``)
     ];
 
     await interaction.editReply({
@@ -798,7 +800,7 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
         },
     });
 
-    const embed = new EmbedBuilder()
+    const embeds = [new EmbedBuilder()
         .setTitle(responseLocale.embed.title)
         .setDescription(
             responseLocale.embed.description + '\n'+
@@ -809,10 +811,13 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
                 return `${name}\n`+ (description ? `> ${description}` : '') + '\n'
             })
             .join('\n')
-        );
+        ),
+        new EmbedBuilder()
+        .setDescription(`\`\`\`json\n${JSON.stringify(await getGlobalRecap(session.id), null, 4)}\n\`\`\``)
+    ];
 
     await interaction.editReply({
-        embeds: [embed],
+        embeds,
     });
 }
 
@@ -854,7 +859,8 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
         });
     }
 
-    const embed = new EmbedBuilder()
+    const embeds = [
+        new EmbedBuilder()
         .setTitle(responseLocale.restrictions)
         .setDescription(
             session.restrictions
@@ -864,10 +870,13 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
                 return `${name}\n`+ (description ? `> ${description}` : '') + '\n'
             })
             .join('\n')
-        );
+        ),
+        new EmbedBuilder()
+        .setDescription(`\`\`\`json\n${JSON.stringify(await getGlobalRecap(session.id), null, 4)}\n\`\`\``)
+    ];
 
     interaction.editReply({
-        embeds: [embed],
+        embeds,
     });
 }
 
