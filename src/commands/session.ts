@@ -169,35 +169,33 @@ async function getGlobalRecap(sessionId: string) {
         },
     });
 
-    const result = {
-        currentSettings: JSON.parse(JSON.stringify(baseValues.modifiers)),
-        removedItems: [] as string[] | undefined,
+    const result: GameSettings = {
+        modifiers: JSON.parse(JSON.stringify(baseValues.modifiers)) as GameSettings['modifiers'],
+        removedItems: [] as string[],
     };
 
     activeRestrictions.forEach((res) => {
         const meta = res.metadata as Record<string, number | boolean | string> | null;
-        if (!meta) return console.log('no meta in res', res.restrictionId);
+        if (!meta) return;
 
         for (const [key, value] of Object.entries(meta)) {
-            if (typeof value === 'number') {
-                if (key in result.currentSettings) {
-                    result.currentSettings[key] += value;
-                } else {
-                    result.currentSettings[key] = value;
+            if (key in result.modifiers) {
+                const modKey = key as keyof GameSettings['modifiers'];
+
+                if (typeof value === 'number' && typeof result.modifiers[modKey] === 'number') {
+                    (result.modifiers[modKey] as number) += value;
+                } 
+                else if (typeof value === 'boolean') {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (result.modifiers[modKey] as any) = value;
                 }
             } 
-            else if (typeof value === 'boolean') {
-                result.currentSettings[key] = value;
-            } 
-            else if (typeof value === 'string') {
-                if (['item', 'forgottenItem', 'soleItem'].includes(key)) {
-                    result.removedItems!.push(value);
-                }
+            // 3. Handle removed items
+            else if (typeof value === 'string' && ['item', 'forgottenItem', 'soleItem'].includes(key)) {
+                result.removedItems.push(value);
             }
         }
     });
-
-    if (result.removedItems!.length === 0) delete result.removedItems;
 
     return result;
 }
