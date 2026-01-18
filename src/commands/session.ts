@@ -1,10 +1,11 @@
-import { type ChatInputCommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
+import { AttachmentBuilder, type ChatInputCommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
 import { prisma } from "../utils/prisma";
 import { getCommandLocalization, getGhost, getRestriction, Locale, localeKey, type LocaleStructure } from "../utils/localeLoader";
 import type { GhostType } from "@types";
-import { GHOST_TYPES } from "../utils/data";
+import { GAME_ITEMS, GHOST_TYPES } from "../utils/data";
+import { drawRestrictionRecap, GameSettings } from "../utils/restrictionImage";
 
 const commandId = 'session';
 const commandLocales = getCommandLocalization(commandId);
@@ -109,18 +110,38 @@ async function selectRestrictions(sessionId: string, restrictionCount: number): 
         }
     }
 
+    const restrictionTemplates = await prisma.restriction.findMany({
+        where: { id: { in: selectedIds } }
+    });
+
     const roundCount = await prisma.sessionRound.count({
         where: {
             sessionId,
         },
     });
 
-    await prisma.sessionRestriction.createMany({
-        data: selectedIds.map(id => ({
+    const sessionRestrictionsData = restrictionTemplates.map(template => {
+        const instanceMetadata = template.metadata ? JSON.parse(JSON.stringify(template.metadata)) : {};
+
+        if (   typeof instanceMetadata.forgottenItem === 'number'
+            || typeof instanceMetadata.soleItem === 'number'
+        ) {
+            const randomItem = GAME_ITEMS[Math.floor(Math.random() * GAME_ITEMS.length)];
+
+            if (instanceMetadata.forgottenItem) instanceMetadata.forgottenItem = randomItem;
+            if (instanceMetadata.soleItem) instanceMetadata.soleItem = randomItem;
+        }
+
+        return {
             number: roundCount + 1,
             sessionId: sessionId,
-            restrictionId: id,
-        })),
+            restrictionId: template.id,
+            metadata: instanceMetadata,
+        };
+    });
+
+    await prisma.sessionRestriction.createMany({
+        data: sessionRestrictionsData,
     });
 
     const newRestrictions = restrictions.filter(res => selectedIds.includes(res.id));
@@ -129,6 +150,55 @@ async function selectRestrictions(sessionId: string, restrictionCount: number): 
         success: true,
         restrictions: newRestrictions,
     };
+}
+
+const baseValues = {
+    modifiers: {
+        evidence: 3,
+        tier: 3,
+        entitySpeed: 100,
+        playerSpeed: 100,
+        breaker: true,
+        sanity: 100,
+        sprint: true,
+    }
+}
+async function getGlobalRecap(sessionId: string) {
+    const activeRestrictions = await prisma.sessionRestriction.findMany({
+        where: { 
+            sessionId: sessionId,
+        },
+    });
+
+    const result: GameSettings = {
+        modifiers: JSON.parse(JSON.stringify(baseValues.modifiers)) as GameSettings['modifiers'],
+        removedItems: [] as string[],
+    };
+
+    activeRestrictions.forEach((res) => {
+        const meta = res.metadata as Record<string, number | boolean | string> | null;
+        if (!meta) return;
+
+        for (const [key, value] of Object.entries(meta)) {
+            if (key in result.modifiers) {
+                const modKey = key as keyof GameSettings['modifiers'];
+
+                if (typeof value === 'number' && typeof result.modifiers[modKey] === 'number') {
+                    (result.modifiers[modKey] as number) += value;
+                } 
+                else if (typeof value === 'boolean') {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (result.modifiers[modKey] as any) = value;
+                }
+            } 
+            // 3. Handle removed items
+            else if (typeof value === 'string' && ['item', 'forgottenItem', 'soleItem'].includes(key)) {
+                result.removedItems.push(value);
+            }
+        }
+    });
+
+    return result;
 }
 
 async function handleCreate(logger: Logger, interaction: ChatInputCommandInteraction) {
@@ -439,7 +509,11 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
         data: {
             startedAt: new Date(),
         }
-    })
+    });
+
+    const restrictions = await getGlobalRecap(session.id);
+    const buffer = await drawRestrictionRecap(restrictions as GameSettings);
+    const attachment = new AttachmentBuilder(buffer, { name: 'recap.png' });
 
     const embeds = [
         // header embed
@@ -471,7 +545,10 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
                 return `${name}\n`+ (description ? `> ${description}` : '') + '\n'
             })
             .join('\n')
-        )
+        ),
+        new EmbedBuilder()
+        // .setDescription(`\`\`\`json\n${JSON.stringify(await getGlobalRecap(session.id), null, 4)}\n\`\`\``)
+        .setImage('attachment://recap.png')
     ];
 
     await interaction.editReply({
@@ -479,6 +556,7 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
             .map(({ userId }) => `<@${userId}>`)
             .join(' '),
         embeds,
+        files: [attachment],
     });
 }
 
@@ -727,7 +805,11 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
         },
     });
 
-    const embed = new EmbedBuilder()
+    const restrictions = await getGlobalRecap(session.id);
+    const buffer = await drawRestrictionRecap(restrictions as GameSettings);
+    const attachment = new AttachmentBuilder(buffer, { name: 'recap.png' });
+
+    const embeds = [new EmbedBuilder()
         .setTitle(responseLocale.embed.title)
         .setDescription(
             responseLocale.embed.description + '\n'+
@@ -738,10 +820,15 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
                 return `${name}\n`+ (description ? `> ${description}` : '') + '\n'
             })
             .join('\n')
-        );
+        ),
+        new EmbedBuilder()
+        // .setDescription(`\`\`\`json\n${JSON.stringify(await getGlobalRecap(session.id), null, 4)}\n\`\`\``)
+        .setImage('attachment://recap.png')
+    ];
 
     await interaction.editReply({
-        embeds: [embed],
+        embeds,
+        files: [attachment],
     });
 }
 
@@ -756,7 +843,7 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
     const session = await prisma.session.findFirst({
         where: {
             guild: guildId,
-            finished: false,
+            finished: true,
             members: {
                 some: {
                     userId: user.id,
@@ -783,7 +870,12 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
         });
     }
 
-    const embed = new EmbedBuilder()
+    const restrictions = await getGlobalRecap(session.id);
+    const buffer = await drawRestrictionRecap(restrictions as GameSettings);
+    const attachment = new AttachmentBuilder(buffer, { name: 'recap.png' });
+
+    const embeds = [
+        new EmbedBuilder()
         .setTitle(responseLocale.restrictions)
         .setDescription(
             session.restrictions
@@ -793,10 +885,15 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
                 return `${name}\n`+ (description ? `> ${description}` : '') + '\n'
             })
             .join('\n')
-        );
+        ),
+        new EmbedBuilder()
+        // .setDescription(`\`\`\`json\n${JSON.stringify(restrictions, null, 4)}\n\`\`\``)
+        .setImage('attachment://recap.png')
+    ];
 
     interaction.editReply({
-        embeds: [embed],
+        embeds,
+        files: [attachment],
     });
 }
 

@@ -70,3 +70,7 @@ export function getGhost(id?: string): string | Record<string, string> {
 export function getRestriction<K extends keyof LocaleStructure['restrictions']>(id: K): { name: string; description?: string } {
   return Locale.restrictions[id] ?? { name: id };
 }
+
+export function getItem<K extends keyof LocaleStructure['items']>(id: K): string {
+  return Locale.items[id] ?? id;
+}

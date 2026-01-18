@@ -36,6 +36,7 @@ CREATE TABLE "SessionMember" (
 CREATE TABLE "Restriction" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "occurences" INTEGER,
+    "metadata" JSONB,
     "addedBy" TEXT NOT NULL,
     "addedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -44,9 +45,9 @@ CREATE TABLE "Restriction" (
 CREATE TABLE "SessionRestriction" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "number" INTEGER NOT NULL,
-    "selected" BOOLEAN NOT NULL DEFAULT false,
     "sessionId" TEXT NOT NULL,
     "restrictionId" TEXT NOT NULL,
+    "metadata" JSONB,
     CONSTRAINT "SessionRestriction_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "SessionRestriction_restrictionId_fkey" FOREIGN KEY ("restrictionId") REFERENCES "Restriction" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );

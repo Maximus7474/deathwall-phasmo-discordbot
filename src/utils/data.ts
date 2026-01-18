@@ -4,7 +4,7 @@ export const GHOST_TYPES = [
     "thaye", "themimic", "thetwins", "wraith", "yokai", "yurei"
 ] as const;
 
-export const ITEMS = [
+export const GAME_ITEMS = [
     "emf_reader", "spirit_box", "thermometer", "dots_projector", "ghost_writing_book", "video_camera",
     "uv_light", "flashlight", "strong_flashlight", "crucifix", "smudge_sticks", "sanity_medication",
     "motion_sensor", "sound_sensor", "salt", "parabolic_microphone", "photo_camera", "firelight",

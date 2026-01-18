@@ -280,7 +280,7 @@
         },
         "sole_copy": {
             "name": "Exemplaire Unique",
-            "description": "Il ne restait qu'un seul exemplaire, vous devrez le partager (hors lampes et briquets)."
+            "description": "Il ne restait qu'un seul exemplaire de chaque objet, vous devrez le partager (hors lampes et briquets)."
         },
         "suspicious_contractors": {
             "name": "Contracteurs Suspicieux",
@@ -309,5 +309,31 @@
         "igniter": "Briquet",
         "tripod": "Trépied",
         "head_gear": "Équipement de tête"
+    },
+    "imagerecap": {
+        "titles": {
+            "main": "Mur de la Mort - Paramètres",
+            "items": "Items oubliés"
+        },
+        "data": {
+            "evidence": "Pieuvres",
+            "maxitemtier": "Tier Maximum",
+            "entityspeed": "Vitesse Entitée",
+            "playerspeed": "Vitesse Joueur",
+            "startsanity": "Santé Mentale",
+            "breaker": "Disjoncteur",
+            "sprint": "Sprint"
+        },
+        "values": {
+            "tiericon": "I ",
+            "breaker": {
+                "functional": "Fonctionnel",
+                "broken": "Cassew"
+            },
+            "sprint": {
+                "enabled": "Activé",
+                "disabled": "Désactivé"
+            }
+        }
     }
 }
