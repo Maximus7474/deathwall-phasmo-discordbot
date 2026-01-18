@@ -1,10 +1,11 @@
-import { type ChatInputCommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
+import { AttachmentBuilder, type ChatInputCommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import SlashCommand from "../classes/slash_command";
 import type Logger from "../utils/logger";
 import { prisma } from "../utils/prisma";
 import { getCommandLocalization, getGhost, getRestriction, Locale, localeKey, type LocaleStructure } from "../utils/localeLoader";
 import type { GhostType } from "@types";
 import { GAME_ITEMS, GHOST_TYPES } from "../utils/data";
+import { drawRestrictionRecap, GameSettings } from "../utils/restrictionImage";
 
 const commandId = 'session';
 const commandLocales = getCommandLocalization(commandId);
@@ -508,7 +509,11 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
         data: {
             startedAt: new Date(),
         }
-    })
+    });
+
+    const restrictions = await getGlobalRecap(session.id);
+    const buffer = await drawRestrictionRecap(restrictions as GameSettings);
+    const attachment = new AttachmentBuilder(buffer, { name: 'recap.png' });
 
     const embeds = [
         // header embed
@@ -542,7 +547,8 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
             .join('\n')
         ),
         new EmbedBuilder()
-        .setDescription(`\`\`\`json\n${JSON.stringify(await getGlobalRecap(session.id), null, 4)}\n\`\`\``)
+        // .setDescription(`\`\`\`json\n${JSON.stringify(await getGlobalRecap(session.id), null, 4)}\n\`\`\``)
+        .setImage('attachment://recap.png')
     ];
 
     await interaction.editReply({
@@ -550,6 +556,7 @@ async function handleStartSession(logger: Logger, interaction: ChatInputCommandI
             .map(({ userId }) => `<@${userId}>`)
             .join(' '),
         embeds,
+        files: [attachment],
     });
 }
 
@@ -798,6 +805,10 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
         },
     });
 
+    const restrictions = await getGlobalRecap(session.id);
+    const buffer = await drawRestrictionRecap(restrictions as GameSettings);
+    const attachment = new AttachmentBuilder(buffer, { name: 'recap.png' });
+
     const embeds = [new EmbedBuilder()
         .setTitle(responseLocale.embed.title)
         .setDescription(
@@ -811,11 +822,13 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
             .join('\n')
         ),
         new EmbedBuilder()
-        .setDescription(`\`\`\`json\n${JSON.stringify(await getGlobalRecap(session.id), null, 4)}\n\`\`\``)
+        // .setDescription(`\`\`\`json\n${JSON.stringify(await getGlobalRecap(session.id), null, 4)}\n\`\`\``)
+        .setImage('attachment://recap.png')
     ];
 
     await interaction.editReply({
         embeds,
+        files: [attachment],
     });
 }
 
@@ -830,7 +843,7 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
     const session = await prisma.session.findFirst({
         where: {
             guild: guildId,
-            finished: false,
+            finished: true,
             members: {
                 some: {
                     userId: user.id,
@@ -857,6 +870,10 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
         });
     }
 
+    const restrictions = await getGlobalRecap(session.id);
+    const buffer = await drawRestrictionRecap(restrictions as GameSettings);
+    const attachment = new AttachmentBuilder(buffer, { name: 'recap.png' });
+
     const embeds = [
         new EmbedBuilder()
         .setTitle(responseLocale.restrictions)
@@ -870,11 +887,13 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
             .join('\n')
         ),
         new EmbedBuilder()
-        .setDescription(`\`\`\`json\n${JSON.stringify(await getGlobalRecap(session.id), null, 4)}\n\`\`\``)
+        // .setDescription(`\`\`\`json\n${JSON.stringify(restrictions, null, 4)}\n\`\`\``)
+        .setImage('attachment://recap.png')
     ];
 
     interaction.editReply({
         embeds,
+        files: [attachment],
     });
 }
 
