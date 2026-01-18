@@ -281,7 +281,7 @@ async function handleCreate(logger: Logger, interaction: ChatInputCommandInterac
 
     if (!guildId) return;
 
-    await interaction.deferReply({});
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const goal = options.getInteger('goal', true);
     const restrictions = options.getInteger('restrictions', false) ?? 2;
