@@ -202,6 +202,77 @@ async function getGlobalRecap(sessionId: string) {
     return result;
 }
 
+type EndRoundResponse = {
+    finished: false;
+} | {
+    finished: true;
+    win: boolean;
+    embed: EmbedBuilder;
+};
+
+async function checkEndCondition(sessionId: string): Promise<EndRoundResponse> {
+    const { endsession: responseLocale, generic: genericResponse } = commandLocales.response;
+
+    const session = (await prisma.session.findFirst({
+        where: {
+            id: sessionId,
+        },
+        select: {
+            id: true,
+            goal: true,
+            members: true,
+            rounds: true,
+        },
+    }))!;
+    
+    const roundsWon = session.rounds.filter(r => r.won).length;
+
+    if (roundsWon < session.goal && roundsWon === session.rounds.length) return { finished: false };
+
+    const sessionWin = roundsWon === session.goal;
+
+    const embed = new EmbedBuilder()
+        .setTitle(responseLocale.embed.title)
+        .setColor(sessionWin
+            ? 'Green'
+            : 'Blue'
+        )
+        .setDescription(
+            responseLocale.embed.description
+                .replace('{state}', sessionWin
+                    ? genericResponse.win
+                    : genericResponse.loss
+                )
+                .replace('{score}', `${roundsWon}/${session.goal}`)
+        )
+        .setFields({
+            name: responseLocale.embed.members,
+            value: session.members
+                .map(m => 
+                    `* ${responseLocale.embed[m.isLeader ? 'lead' : 'member']
+                    .replace('{mention}', `<@${m.userId}>`)}`
+                )
+                .join('\n'),
+            inline: true
+        });
+
+    await prisma.session.update({
+        data: {
+            finished: true,
+            finishedAt: new Date(),
+        },
+        where: {
+            id: session.id,
+        }
+    });
+    
+    return {
+        finished: true,
+        win: sessionWin,
+        embed,
+    };
+}
+
 // callback handlers
 
 async function handleCreate(logger: Logger, interaction: ChatInputCommandInteraction) {
@@ -451,93 +522,6 @@ async function handleListUsers(logger: Logger, interaction: ChatInputCommandInte
     });
 }
 
-async function handleEndSession(logger: Logger, interaction: ChatInputCommandInteraction) {
-    const { user, guildId } = interaction;
-    const { endsession: responseLocale, generic: genericResponse } = commandLocales.response;
-
-    if (!guildId) return;
-
-    await interaction.deferReply({});
-
-    const session = await prisma.session.findFirst({
-        where: {
-            guild: guildId,
-            finished: false,
-            members: {
-                some: {
-                    userId: user.id,
-                    isLeader: true,
-                }
-            },
-        },
-        select: {
-            id: true,
-            goal: true,
-            members: true,
-            rounds: true,
-        },
-    });
-
-    if (!session) {
-        return interaction.editReply({
-            content: genericResponse.notinsession,
-        });
-    }
-
-    const unfinishedSessions = session.rounds
-        .some(round => round.won === null && round.finishedAt === null);
-
-    if (unfinishedSessions) {
-        return interaction.editReply({
-            content: responseLocale.activeround,
-        });
-    }
-
-    await prisma.session.update({
-        data: {
-            finished: true,
-            finishedAt: new Date(),
-        },
-        where: {
-            id: session.id,
-        }
-    });
-
-    const roundsWon = session.rounds.filter(round => round.won).length;
-    const roundsLost = session.rounds.length - roundsWon;
-    const projectWin = roundsWon >= session.goal;
-
-    const embed = new EmbedBuilder()
-        .setTitle(responseLocale.embed.title)
-        .setColor(projectWin
-            ? 'Green'
-            : 'Blue'
-        )
-        .setDescription(
-            responseLocale.embed.description
-                .replace('{state}', projectWin
-                    ? genericResponse.win
-                    : genericResponse.loss
-                )
-                .replace('{wins}', `${roundsWon}`)
-                .replace('{losses}', `${roundsLost}`)
-        )
-        .setFields({
-            name: responseLocale.embed.members,
-            value: session.members
-                .map(m => 
-                    `* ${responseLocale.embed[m.isLeader ? 'lead' : 'member']
-                    .replace('{mention}', `<@${m.userId}>`)}`
-                )
-                .join('\n'),
-            inline: true
-        });
-    
-    interaction.editReply({
-        embeds: [embed],
-    });
-}
-
 async function handleEndRound(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { options, user, guildId } = interaction;
     const { endround: responseLocale, generic: genericResponse } = commandLocales.response;
@@ -612,20 +596,28 @@ async function handleEndRound(logger: Logger, interaction: ChatInputCommandInter
         });
     }
 
-    const embed = new EmbedBuilder()
-        .setTitle(responseLocale.embed.title)
-        .setColor(win
-            ? 'DarkGreen'
-            : 'DarkRed'
-        )
-        .setDescription(
-            responseLocale.embed.description
-                .replace('{state}', genericResponse[win ? 'win' : 'loss'])
-                .replace('{ghost}', getGhost(ghost))
-        )
-        .setFooter({
-            text: responseLocale.embed.footer
-        });
+    const endCondition = await checkEndCondition(session.id);
+
+    let embed: EmbedBuilder;
+
+    if (endCondition.finished) {
+        embed = endCondition.embed;
+    } else {
+        embed = new EmbedBuilder()
+            .setTitle(responseLocale.embed.title)
+            .setColor(win
+                ? 'DarkGreen'
+                : 'DarkRed'
+            )
+            .setDescription(
+                responseLocale.embed.description
+                    .replace('{state}', genericResponse[win ? 'win' : 'loss'])
+                    .replace('{ghost}', getGhost(ghost))
+            )
+            .setFooter({
+                text: responseLocale.embed.footer
+            });
+    }
 
     interaction.editReply({
         embeds: [embed],
@@ -882,12 +874,6 @@ export default new SlashCommand({
                                 .setRequired(false)
                         )
                 )
-                .addSubcommand(c =>
-                    c.setName('end')
-                        .setNameLocalization(localeKey, handleSubCommand.subcommands.end.name)
-                        .setDescription('Ends a session')
-                        .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.end.description)
-                )
         )
 
         // round
@@ -970,9 +956,6 @@ export default new SlashCommand({
                 return;
             } else if (command === 'users') {
                 handleListUsers(logger, interaction);
-                return;
-            } else if (command === 'end') {
-                handleEndSession(logger, interaction);
                 return;
             }
         } else if (commandGroup === 'round') {
