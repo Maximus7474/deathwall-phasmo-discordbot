@@ -280,7 +280,7 @@
         },
         "sole_copy": {
             "name": "Exemplaire Unique",
-            "description": "Il ne restait qu'un seul exemplaire, vous devrez le partager (hors lampes et briquets)."
+            "description": "Il ne restait qu'un seul exemplaire de chaque objet, vous devrez le partager (hors lampes et briquets)."
         },
         "suspicious_contractors": {
             "name": "Contracteurs Suspicieux",

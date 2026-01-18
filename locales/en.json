@@ -280,7 +280,7 @@
         },
         "sole_copy": {
             "name": "Sole Copy",
-            "description": "There was only one item left, you'll have to share it (excl. torches & lighters)."
+            "description": "There was only one copy of each item left, you'll have to share it (excl. torches & lighters)."
         },
         "suspicious_contractors": {
             "name": "Suspicious Contractors",
