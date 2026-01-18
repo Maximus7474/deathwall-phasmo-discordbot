@@ -1,5 +1,5 @@
 import { GlobalFonts, createCanvas } from '@napi-rs/canvas';
-import { getItem } from './localeLoader';
+import { getItem, Locale } from './localeLoader';
 import { ItemType } from '@types';
 import { join } from 'node:path';
 
@@ -16,8 +16,9 @@ export interface GameSettings {
     removedItems: string[];
 }
 
-console.log(join(import.meta.dir, 'assets', 'fonts', 'October Crow.ttf'))
 GlobalFonts.registerFromPath(join(import.meta.dir, '..', '..', 'assets', 'fonts', 'October Crow.ttf'), 'OctoberCrow');
+
+const imageLocales = Locale.imagerecap;
 
 export async function drawRestrictionRecap(settings: GameSettings): Promise<Buffer> {
     const width = 600;
@@ -28,19 +29,19 @@ export async function drawRestrictionRecap(settings: GameSettings): Promise<Buff
     const defaultFont = '18px sans-serif';
     const octcrowFont = '18px OctoberCrow';
 
-    // --- Background ---
+    // Background
     ctx.fillStyle = '#0b0b0b';
     ctx.fillRect(0, 0, width, height);
 
-    // --- Header ---
+    // Header
     ctx.fillStyle = '#e61414';
     ctx.fillRect(0, 0, width, 60);
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 28px OctoberCrow';
-    ctx.fillText('Death wall - GAME SETTINGS', 20, 40);
+    ctx.fillText(imageLocales.titles.main, 20, 40);
 
-    // --- Grid Constants ---
+    // Grid Constants
     const startX = 30;
     const startY = 100;
     const colWidth = 270;
@@ -48,16 +49,32 @@ export async function drawRestrictionRecap(settings: GameSettings): Promise<Buff
 
     const mods = settings.modifiers;
     const data = [
-        { label: 'Evidence', value: `${mods.evidence}` },
-        { label: 'Max Item Tier', value: `${'I '.repeat(mods.tier)}` },
-        { label: 'Entity Speed', value: `${mods.entitySpeed} %` },
-        { label: 'Player Speed', value: `${mods.playerSpeed} %` },
-        { label: 'Start Sanity', value: `${mods.sanity} %` },
-        { label: 'Breaker', value: mods.breaker ? 'Functional' : 'Broken', color: mods.breaker ? '#a6e3a1' : '#f38ba8' },
-        { label: 'Sprinting', value: mods.sprint ? 'Enabled' : 'Disabled', color: mods.sprint ? '#a6e3a1' : '#f38ba8' },
+        { label: imageLocales.data.evidence,    value: `${mods.evidence}` },
+        { label: imageLocales.data.maxitemtier, value: imageLocales.values.tiericon.repeat(mods.tier) },
+        { label: imageLocales.data.entityspeed, value: `${mods.entitySpeed} %` },
+        { label: imageLocales.data.playerspeed, value: `${mods.playerSpeed} %` },
+        { label: imageLocales.data.startsanity, value: `${mods.sanity} %` },
+        { 
+            label: imageLocales.data.breaker, 
+            value: mods.breaker
+                ? imageLocales.values.breaker.functional
+                : imageLocales.values.breaker.broken, 
+            color: mods.breaker
+                ? '#a6e3a1'
+                : '#f38ba8' 
+        },
+        { 
+            label: imageLocales.data.sprint,  
+            value: mods.sprint
+                ? imageLocales.values.sprint.enabled
+                : imageLocales.values.sprint.disabled, 
+            color: mods.sprint
+                ? '#a6e3a1'
+                : '#f38ba8' 
+        },
     ];
 
-    // --- Draw Modifiers Grid ---
+    // Modifiers Grid
     data.forEach((item, i) => {
         const x = startX + (i % 2 === 1 ? colWidth : 0);
         const y = startY + Math.floor(i / 2) * rowHeight;
@@ -71,7 +88,7 @@ export async function drawRestrictionRecap(settings: GameSettings): Promise<Buff
         ctx.fillText(item.value, x + 130, y);
     });
 
-    // --- Removed Items Section ---
+    // Removed Items
     const listY = 265;
     ctx.strokeStyle = '#313244';
     ctx.lineWidth = 2;
