@@ -23,6 +23,8 @@ type ResSelectionResponse = {
     restrictions: CleanRestriction[];
 }
 
+// helper functions
+
 async function selectRestrictions(sessionId: string, restrictionCount: number): Promise<ResSelectionResponse> {
     const rawCurrentRestrictions = await prisma.sessionRestriction.findMany({
         where: {
@@ -199,6 +201,8 @@ async function getGlobalRecap(sessionId: string) {
 
     return result;
 }
+
+// callback handlers
 
 async function handleCreate(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { options, user, guildId } = interaction;
@@ -447,118 +451,6 @@ async function handleListUsers(logger: Logger, interaction: ChatInputCommandInte
     });
 }
 
-async function handleStartSession(logger: Logger, interaction: ChatInputCommandInteraction) {
-    const { user, guildId } = interaction;
-    const { startsession: responseLocale, generic: genericResponse } = commandLocales.response;
-
-    if (!guildId) return;
-
-    await interaction.deferReply({});
-
-    const session = await prisma.session.findFirst({
-        where: {
-            guild: guildId,
-            finished: false,
-            members: {
-                some: {
-                    userId: user.id,
-                    isLeader: true,
-                }
-            },
-        },
-        select: {
-            members: true,
-            id: true,
-            startedAt: true,
-            goal: true,
-            successfulRounds: true,
-            restrictionsPerRound: true,
-        },
-    });
-
-    if (!session) {
-        return interaction.editReply({
-            content: genericResponse.notinsession,
-        });
-    }
-
-    const roundStarter = await selectRestrictions(session.id, session.restrictionsPerRound);
-
-    if (!roundStarter.success) {
-        logger.error(`StartSession, unable to generate restrictions for first round: "${roundStarter.message}"`);
-
-        return interaction.editReply({
-            content: `${responseLocale.unabletogenerate}\n> \`${roundStarter.message}\``,
-        });
-    }
-
-    const sessionMember = session.members.find(member => member.userId === user.id)!;
-
-    await prisma.sessionRound.create({
-        data: {
-            sessionId: session.id,
-            startedById: sessionMember.id,
-        },
-    });
-
-    await prisma.session.update({
-        where: {
-            id: session.id,
-        },
-        data: {
-            startedAt: new Date(),
-        }
-    });
-
-    const restrictions = await getGlobalRecap(session.id);
-    const buffer = await drawRestrictionRecap(restrictions as GameSettings);
-    const attachment = new AttachmentBuilder(buffer, { name: 'recap.png' });
-
-    const embeds = [
-        // header embed
-        new EmbedBuilder()
-        .setTitle(responseLocale.embed.title1)
-        .setDescription(
-            responseLocale.embed.description1
-                .replace('{goal}', `${session.goal}`)
-                .replace('{restrictions}', `${session.restrictionsPerRound}`)
-        )
-        .setFields({
-            name: responseLocale.embed.members,
-            value: session.members
-                .map(m => 
-                    `* ${responseLocale.embed[m.isLeader ? 'lead' : 'member']
-                    .replace('{mention}', `<@${m.userId}>`)}`
-                )
-                .join('\n'),
-            inline: true
-        }),
-        //
-        new EmbedBuilder()
-        .setTitle(responseLocale.embed.title2)
-        .setDescription(
-            roundStarter.restrictions
-            .map(res => {
-                const { name, description } = getRestriction(res.id as keyof LocaleStructure['restrictions']);
-                
-                return `${name}\n`+ (description ? `> ${description}` : '') + '\n'
-            })
-            .join('\n')
-        ),
-        new EmbedBuilder()
-        // .setDescription(`\`\`\`json\n${JSON.stringify(await getGlobalRecap(session.id), null, 4)}\n\`\`\``)
-        .setImage('attachment://recap.png')
-    ];
-
-    await interaction.editReply({
-        content: session.members
-            .map(({ userId }) => `<@${userId}>`)
-            .join(' '),
-        embeds,
-        files: [attachment],
-    });
-}
-
 async function handleEndSession(logger: Logger, interaction: ChatInputCommandInteraction) {
     const { user, guildId } = interaction;
     const { endsession: responseLocale, generic: genericResponse } = commandLocales.response;
@@ -763,6 +655,7 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
             id: true,
             restrictionsPerRound: true,
             rounds: true,
+            startedAt: true,
             members: {
                 select: {
                     id: true,
@@ -803,6 +696,17 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
             startedById: sessionMember.id,
         },
     });
+
+    if (!session.startedAt) {
+        await prisma.session.update({
+            where: {
+                id: session.id,
+            },
+            data: {
+                startedAt: new Date(),
+            }
+        });
+    }
 
     const restrictions = await getGlobalRecap(session.id);
     const buffer = await drawRestrictionRecap(restrictions as GameSettings);
@@ -979,12 +883,6 @@ export default new SlashCommand({
                         )
                 )
                 .addSubcommand(c =>
-                    c.setName('start')
-                        .setNameLocalization(localeKey, handleSubCommand.subcommands.start.name)
-                        .setDescription('Start a session')
-                        .setDescriptionLocalization(localeKey, handleSubCommand.subcommands.start.description)
-                )
-                .addSubcommand(c =>
                     c.setName('end')
                         .setNameLocalization(localeKey, handleSubCommand.subcommands.end.name)
                         .setDescription('Ends a session')
@@ -1072,9 +970,6 @@ export default new SlashCommand({
                 return;
             } else if (command === 'users') {
                 handleListUsers(logger, interaction);
-                return;
-            }  else if (command === 'start') {
-                handleStartSession(logger, interaction);
                 return;
             } else if (command === 'end') {
                 handleEndSession(logger, interaction);
