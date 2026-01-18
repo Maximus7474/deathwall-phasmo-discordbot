@@ -316,7 +316,7 @@
             "items": "Items oubliés"
         },
         "data": {
-            "evidence": "Pieuvres",
+            "evidence": "Preuves",
             "maxitemtier": "Tier Maximum",
             "entityspeed": "Vitesse Entitée",
             "playerspeed": "Vitesse Joueur",
@@ -328,11 +328,11 @@
             "tiericon": "I ",
             "breaker": {
                 "functional": "Fonctionnel",
-                "broken": "Cassew"
+                "broken": "Casser"
             },
             "sprint": {
-                "enabled": "Active",
-                "disabled": "Desactive"
+                "enabled": "Activer",
+                "disabled": "Desactiver"
             }
         }
     }
