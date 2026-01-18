@@ -312,7 +312,7 @@
     },
     "imagerecap": {
         "titles": {
-            "main": "Mur de la Mort - Paramètres",
+            "main": "Mur de la Mort - Parametres",
             "items": "Items oubliés"
         },
         "data": {
@@ -331,8 +331,8 @@
                 "broken": "Cassew"
             },
             "sprint": {
-                "enabled": "Activé",
-                "disabled": "Désactivé"
+                "enabled": "Active",
+                "disabled": "Desactive"
             }
         }
     }
