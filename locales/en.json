@@ -285,6 +285,22 @@
         "suspicious_contractors": {
             "name": "Suspicious Contractors",
             "description": "Your contractor wants visual evidence of the ghost (handheld video/photo)."
+        },
+        "no_hiding": {
+            "name": "Claustrophobia",
+            "description": "The ghost hates open spaces. Hiding places are reduced to zero."
+        },
+        "restless_spirit": {
+            "name": "Restless Spirit",
+            "description": "The ghost changes its favorite room frequently (High frequency)."
+        },
+        "no_sanity_monitor": {
+            "name": "Blind Investigation",
+            "description": "The Sanity Monitor in the van is disabled. You'll have to guess how much time you have left."
+        },
+        "no_activity_monitor": {
+            "name": "Radio Silence",
+            "description": "The Activity Monitor is broken. You won't be able to see the ghost's activity levels from the van."
         }
     },
     "items": {

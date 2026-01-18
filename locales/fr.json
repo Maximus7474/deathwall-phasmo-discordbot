@@ -285,6 +285,22 @@
         "suspicious_contractors": {
             "name": "Contracteurs Suspicieux",
             "description": "Votre employeur veut une preuve visuelle de l'entité (caméscope/photo)."
+        },
+        "no_hiding": {
+            "name": "Claustrophobie",
+            "description": "L'entité déteste les espaces ouverts. Les cachettes sont totalement supprimées."
+        },
+        "restless_spirit": {
+            "name": "Esprit Errant",
+            "description": "L'entité change fréquemment de pièce favorite (Fréquence élevée)."
+        },
+        "no_sanity_monitor": {
+            "name": "Enquête à l'Aveugle",
+            "description": "Le moniteur de santé mentale dans le camion est désactivé. À vous de deviner combien de temps il vous reste."
+        },
+        "no_activity_monitor": {
+            "name": "Silence Radio",
+            "description": "Le moniteur d'activité est en panne. Vous ne pourrez plus voir les pics d'activité de l'entité depuis le camion."
         }
     },
     "items": {
