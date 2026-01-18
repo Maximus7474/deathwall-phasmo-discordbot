@@ -843,7 +843,7 @@ async function handleRestrictions(logger: Logger, interaction: ChatInputCommandI
     const session = await prisma.session.findFirst({
         where: {
             guild: guildId,
-            finished: true,
+            finished: false,
             members: {
                 some: {
                     userId: user.id,
