@@ -19,6 +19,10 @@ async function seed() {
         { id: "dodgy_medicine", occurences: 1 },
         { id: "sole_copy", occurences: 3 },
         { id: "suspicious_contractors", occurences: 1 },
+        { id: "no_hiding", occurences: 1 },
+        { id: "restless_spirit", occurences: 1 },
+        { id: "no_activity_monitor", occurences: 1 },
+        { id: "no_sanity_monitor", occurences: 1 },
     ];
 
     const adminId = "SYSTEM_SEED";
