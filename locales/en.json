@@ -309,5 +309,31 @@
         "igniter": "Igniter",
         "tripod": "Tripod",
         "head_gear": "Head Gear"
+    },
+    "imagerecap": {
+        "titles": {
+            "main": "Death wall - Game settings",
+            "items": "Removed items"
+        },
+        "data": {
+            "evidence": "Evidence",
+            "maxitemtier": "Max Item Tier",
+            "entityspeed": "Entity Speed",
+            "playerspeed": "Player Speed",
+            "startsanity": "Start Sanity",
+            "breaker": "Breaker",
+            "sprint": "Sprint"
+        },
+        "values": {
+            "tiericon": "I ",
+            "breaker": {
+                "functional": "Functional",
+                "broken": "Broken"
+            },
+            "sprint": {
+                "enabled": "Enabled",
+                "disabled": "Disabled"
+            }
+        }
     }
 }
