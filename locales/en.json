@@ -125,8 +125,8 @@
                     "insession": "You're already in an active session on this guild.\n-# session id: `{sessionid}`",
                     "createdembed": {
                         "title": "New session created",
-                        "content": "You can now finish configure it using the following commands:\n* `/session handle invite` to add other discord users to the session\n* `/session handle remove` to remove discord users from the session\n* `/session handle users` to display current users in the session\n* `/session handle start` to start the session\n\nInvited users can also use the following commands:\n* `/session round start`\n* `/session round end` close a round and inform the outcome\n* `/session round restrictions` list the current restrictions on the session\n",
-                        "footer": "Session id: {session}"
+                        "content": "You can now finish configure it using the following commands:\n* `/session handle invite` to add other discord users to the session\n* `/session handle remove` to remove discord users from the session\n* `/session handle users` to display current users in the session\n\nInvited users can also use the following commands:\n* `/session round start`\n* `/session round end` close a round and inform the outcome\n* `/session round restrictions` list the current restrictions on the session\n",
+                        "footer": "Session id: `{session}`"
                     }
                 },
                 "inviteuser": {

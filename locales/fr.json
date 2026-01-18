@@ -125,7 +125,7 @@
                     "insession": "Vous avez déjà une session active sur ce serveur.\n-# id de session : `{sessionid}`",
                     "createdembed": {
                         "title": "Nouvelle session créée",
-                        "content": "Vous pouvez maintenant finir de la configurer avec les commandes suivantes :\n* `/session gestion inviter` pour ajouter d'autres utilisateurs Discord\n* `/session gestion retirer` pour retirer des utilisateurs\n* `/session gestion membres` pour afficher les membres actuels\n* `/session gestion démarrer` pour lancer la session\n\nLes utilisateurs invités peuvent aussi utiliser :\n* `/session manche nouvelle` pour lancer une manche\n* `/session manche terminer` pour clôturer une manche\n* `/session manche restrictions` pour voir les contraintes en cours\n",
+                        "content": "Vous pouvez maintenant finir de la configurer avec les commandes suivantes :\n* `/session gestion inviter` pour ajouter d'autres utilisateurs Discord\n* `/session gestion retirer` pour retirer des utilisateurs\n* `/session gestion membres` pour afficher les membres actuels\n\nLes utilisateurs invités peuvent aussi utiliser :\n* `/session manche nouvelle` pour lancer une manche\n* `/session manche terminer` pour clôturer une manche\n* `/session manche restrictions` pour voir les contraintes en cours\n",
                         "footer": "ID de session : {session}"
                     }
                 },
