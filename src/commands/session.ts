@@ -123,13 +123,10 @@ async function selectRestrictions(sessionId: string, restrictionCount: number): 
     const sessionRestrictionsData = restrictionTemplates.map(template => {
         const instanceMetadata = template.metadata ? JSON.parse(JSON.stringify(template.metadata)) : {};
 
-        if (   typeof instanceMetadata.forgottenItem === 'number'
-            || typeof instanceMetadata.soleItem === 'number'
-        ) {
+        if (typeof instanceMetadata.forgottenItem === 'number') {
             const randomItem = GAME_ITEMS[Math.floor(Math.random() * GAME_ITEMS.length)];
 
             if (instanceMetadata.forgottenItem) instanceMetadata.forgottenItem = randomItem;
-            if (instanceMetadata.soleItem) instanceMetadata.soleItem = randomItem;
         }
 
         return {
