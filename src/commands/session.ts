@@ -6,6 +6,7 @@ import { getCommandLocalization, getGhost, getRestriction, Locale, localeKey, ty
 import type { GhostType } from "@types";
 import { GAME_ITEMS, GHOST_TYPES } from "../utils/data";
 import { drawRestrictionRecap, GameSettings } from "../utils/restrictionImage";
+import { shuffleArray } from "../utils/utils";
 
 const commandId = 'session';
 const commandLocales = getCommandLocalization(commandId);
@@ -78,16 +79,17 @@ async function selectRestrictions(sessionId: string, restrictionCount: number): 
         message: 'No restrictions found !',
     };
 
-    const weightedPool = restrictions.map(res => {
+    const weightedPool = shuffleArray(restrictions.map(res => {
         const stats = restrictionStats[res.id] || { count: 0 };
         
-        const weight = Math.max(0, (res.occurences ?? Infinity) - stats.count);
+        const weight = Math.max(0, (res.occurences ?? 1) - stats.count);
         
         return {
             id: res.id,
             weight
         };
-    }).filter(res => res.weight > 0);
+    })
+    .filter(res => res.weight > 0));
 
     if (weightedPool.length === 0) return {
         success: false,
