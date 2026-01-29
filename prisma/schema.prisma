@@ -20,6 +20,7 @@ model Session {
   goal                  Int
   restrictionsPerRound  Int                 @default(2)
   finished              Boolean             @default(false)
+  score                 Int?
   startedAt             DateTime?
   finishedAt            DateTime?
   
@@ -60,6 +61,7 @@ model Restriction {
   id          String   @id
   occurences  Int?
   metadata    Json?
+  score       Int      @default(1) // difficulty score
   addedBy     String
   addedAt     DateTime @default(now())
 
