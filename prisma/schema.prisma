@@ -14,68 +14,72 @@ datasource db {
 }
 
 model Session {
-  id                    String              @id @default(cuid())
-  guild                 String
-  successfulRounds      Int
-  goal                  Int
-  restrictionsPerRound  Int                 @default(2)
-  finished              Boolean             @default(false)
-  startedAt             DateTime?
-  finishedAt            DateTime?
-  
+  id                   String    @id @default(cuid())
+  guild                String
+  successfulRounds     Int
+  goal                 Int
+  restrictionsPerRound Int       @default(2)
+  finished             Boolean   @default(false)
+  score                Int?
+  startedAt            DateTime?
+  finishedAt           DateTime?
+
   // Relations
-  members               SessionMember[]
-  restrictions          SessionRestriction[]
-  rounds                SessionRound[]
+  members      SessionMember[]
+  restrictions SessionRestriction[]
+  rounds       SessionRound[]
 }
 
 model SessionRound {
-  id                    String              @id @default(cuid())
-  ghostType             String?
-  won                   Boolean?
+  id        String   @id @default(cuid())
+  ghostType String?
+  won       Boolean?
 
-  sessionId             String
-  session               Session             @relation(fields: [sessionId], references: [id])
-  
-  startedById           String
-  startedBy             SessionMember       @relation("RoundsStartedBy", fields: [startedById], references: [id])
+  restrictions SessionRestriction[]
 
-  startedAt             DateTime            @default(now())
-  finishedAt            DateTime?
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id])
+
+  startedById String
+  startedBy   SessionMember @relation("RoundsStartedBy", fields: [startedById], references: [id])
+
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
 }
 
 model SessionMember {
-  id            String         @id @default(cuid())
-  userId        String
-  isLeader      Boolean        @default(false)
+  id       String  @id @default(cuid())
+  userId   String
+  isLeader Boolean @default(false)
 
   roundsStarted SessionRound[] @relation("RoundsStartedBy")
-  
+
   // Relation to Session
-  sessionId     String
-  session       Session        @relation(fields: [sessionId], references: [id])
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id])
 }
 
 model Restriction {
-  id          String   @id
-  occurences  Int?
-  metadata    Json?
-  addedBy     String
-  addedAt     DateTime @default(now())
+  id         String   @id
+  occurences Int?
+  metadata   Json?
+  score      Int      @default(1)
+  addedBy    String
+  addedAt    DateTime @default(now())
 
-  // Relation to join table
-  sessions    SessionRestriction[]
+  sessions SessionRestriction[]
 }
 
 model SessionRestriction {
-  id            String      @id @default(cuid())
-  number        Int
+  id     String @id @default(cuid())
 
-  sessionId     String
-  session       Session     @relation(fields: [sessionId], references: [id])
+  roundId String
+  round   SessionRound @relation(fields: [roundId], references: [id])
 
   restrictionId String
   restriction   Restriction @relation(fields: [restrictionId], references: [id])
 
-  metadata      Json?
+  metadata  Json?
+  session   Session? @relation(fields: [sessionId], references: [id])
+  sessionId String?
 }

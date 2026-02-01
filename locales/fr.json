@@ -164,7 +164,7 @@
                     "activeround": "Une manche est en cours, utilisez `/session manche terminer` pour déterminer son issue finale.",
                     "embed": {
                         "title": "La session est terminée",
-                        "description": "Cette session s'est conclue par une {state}.\nScore: {score}",
+                        "description": "Cette session s'est conclue par une {state}.\nScore: {score}\nRounds: {successfulrounds}/{totalrounds}",
                         "members": "Membres",
                         "lead": ":cook: {mention}",
                         "member": "{mention}"

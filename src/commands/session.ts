@@ -25,7 +25,7 @@ type ResSelectionResponse = {
 
 // helper functions
 
-async function selectRestrictions(sessionId: string, restrictionCount: number): Promise<ResSelectionResponse> {
+async function initializeRound(sessionId: string, restrictionCount: number, sessionMember: string): Promise<ResSelectionResponse> {
     const rawCurrentRestrictions = await prisma.sessionRestriction.findMany({
         where: {
             sessionId,
@@ -118,9 +118,10 @@ async function selectRestrictions(sessionId: string, restrictionCount: number): 
         where: { id: { in: selectedIds } }
     });
 
-    const roundCount = await prisma.sessionRound.count({
-        where: {
-            sessionId,
+    const newRound = await prisma.sessionRound.create({
+        data: {
+            sessionId: sessionId,
+            startedById: sessionMember,
         },
     });
 
@@ -134,10 +135,10 @@ async function selectRestrictions(sessionId: string, restrictionCount: number): 
         }
 
         return {
-            number: roundCount + 1,
             sessionId: sessionId,
             restrictionId: template.id,
             metadata: instanceMetadata,
+            roundId: newRound.id,
         };
     });
 
@@ -210,6 +211,75 @@ type EndRoundResponse = {
     embed: EmbedBuilder;
 };
 
+async function calculateSessionScore(sessionId: string) {
+    const session = await prisma.session.findUnique({
+        where: { id: sessionId },
+        include: {
+            rounds: { orderBy: { startedAt: 'asc' }, include: { restrictions: true } },
+            restrictions: { include: { restriction: true } }
+        }
+    });
+
+    if (!session) throw new Error("Session not found");
+
+    const restrictionScore = session.rounds.reduce((sum, round) => {
+        const roundRestristions = round.restrictions;
+
+        if (!round.won) return sum;
+        
+        let score = 0;
+        for (const restriction of roundRestristions) {
+            const resData = session.restrictions.find(e => e.id === restriction.id)!;
+
+            score += resData.restriction.score;
+        }
+
+        return sum + score;
+    }, 0);
+
+    // equivalent to professional multiplier
+    // allowing for future changes allowing difficulty selection
+    const DIFFICULTY_MULTIPLIYER = 3;
+    const BASE_POINTS_PER_WIN = 2;
+    
+    let roundPoints = 0;
+    let successfulCount = 0;
+
+    for (const round of session.rounds) {
+        if (round.won === true) {
+            roundPoints += BASE_POINTS_PER_WIN;
+            successfulCount++;
+        }
+    }
+    
+    const isGoalReached = successfulCount >= session.goal;
+    // Debattable if we reduce the gap between a successful session and a loss
+    const completionMultiplier = isGoalReached ? 2.0 : 1.0;
+
+    const totalRoundsPlayed = session.rounds.length || 1;
+    const efficiencyRate = successfulCount / totalRoundsPlayed;
+
+    // Final Calculation
+    const finalScore = (roundPoints * completionMultiplier + restrictionScore * DIFFICULTY_MULTIPLIYER) * efficiencyRate;
+
+    const updatedSession = await prisma.session.update({
+        where: { id: sessionId },
+        data: {
+            score: Math.round(finalScore),
+            successfulRounds: successfulCount,
+            finished: true,
+            finishedAt: new Date()
+        }
+    });
+
+    return {
+        finalScore: updatedSession.score,
+        successfulRounds: updatedSession.successfulRounds,
+        totalRounds: totalRoundsPlayed,
+        goalReached: isGoalReached
+    };
+}
+
 async function checkEndCondition(sessionId: string): Promise<EndRoundResponse> {
     const { endsession: responseLocale, generic: genericResponse } = commandLocales.response;
 
@@ -229,7 +299,9 @@ async function checkEndCondition(sessionId: string): Promise<EndRoundResponse> {
 
     if (roundsWon < session.goal && roundsWon === session.rounds.length) return { finished: false };
 
-    const sessionWin = roundsWon === session.goal;
+    const scoring = await calculateSessionScore(sessionId);
+
+    const sessionWin = scoring.goalReached;
 
     const embed = new EmbedBuilder()
         .setTitle(responseLocale.embed.title)
@@ -243,7 +315,9 @@ async function checkEndCondition(sessionId: string): Promise<EndRoundResponse> {
                     ? genericResponse.win
                     : genericResponse.loss
                 )
-                .replace('{score}', `${roundsWon}/${session.goal}`)
+                .replace('{score}', `${scoring.finalScore}`)
+                .replace('{successfulrounds}', `${scoring.successfulRounds}`)
+                .replace('{totalrounds}', `${scoring.totalRounds}`)
         )
         .setFields({
             name: responseLocale.embed.members,
@@ -672,22 +746,15 @@ async function handleNewRound(logger: Logger, interaction: ChatInputCommandInter
         });
     }
 
-    const roundData = await selectRestrictions(session.id, session.restrictionsPerRound);
+    const sessionMember = session.members.find(member => member.userId === user.id)!;
+
+    const roundData = await initializeRound(session.id, session.restrictionsPerRound, sessionMember.id);
 
     if (!roundData.success) {
         return interaction.editReply({
             content: `${responseLocale.unabletogenerate}\n> \`${roundData.message}\``,
         });
     }
-
-    const sessionMember = session.members.find(member => member.userId === user.id)!;
-
-    await prisma.sessionRound.create({
-        data: {
-            sessionId: session.id,
-            startedById: sessionMember.id,
-        },
-    });
 
     if (!session.startedAt) {
         await prisma.session.update({
