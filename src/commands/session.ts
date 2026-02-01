@@ -215,18 +215,31 @@ async function calculateSessionScore(sessionId: string) {
     const session = await prisma.session.findUnique({
         where: { id: sessionId },
         include: {
-            rounds: { orderBy: { startedAt: 'asc' } },
+            rounds: { orderBy: { startedAt: 'asc' }, include: { restrictions: true } },
             restrictions: { include: { restriction: true } }
         }
     });
 
     if (!session) throw new Error("Session not found");
 
-    const restrictionSum = session.restrictions.reduce((sum, sr) => {
-        return sum + (sr.restriction.score || 0);
+    const restrictionScore = session.rounds.reduce((sum, round) => {
+        const roundRestristions = round.restrictions;
+
+        if (!round.won) return sum;
+        
+        let score = 0;
+        for (const restriction of roundRestristions) {
+            const resData = session.restrictions.find(e => e.id === restriction.id)!;
+
+            score += resData.restriction.score;
+        }
+
+        return sum + score;
     }, 0);
 
-    const difficultyScore = restrictionSum * 3.0;
+    // equivalent to professional multiplier
+    // allowing for future changes allowing difficulty selection
+    const DIFFICULTY_MULTIPLIYER = 3;
     const BASE_POINTS_PER_WIN = 2;
     
     let roundPoints = 0;
@@ -234,19 +247,20 @@ async function calculateSessionScore(sessionId: string) {
 
     for (const round of session.rounds) {
         if (round.won === true) {
-            roundPoints += (difficultyScore + BASE_POINTS_PER_WIN);
+            roundPoints += BASE_POINTS_PER_WIN;
             successfulCount++;
         }
     }
     
     const isGoalReached = successfulCount >= session.goal;
+    // Debattable if we reduce the gap between a successful session and a loss
     const completionMultiplier = isGoalReached ? 2.0 : 1.0;
 
     const totalRoundsPlayed = session.rounds.length || 1;
     const efficiencyRate = successfulCount / totalRoundsPlayed;
 
     // Final Calculation
-    const finalScore = (roundPoints * completionMultiplier) * efficiencyRate;
+    const finalScore = (roundPoints * completionMultiplier + restrictionScore * DIFFICULTY_MULTIPLIYER) * efficiencyRate;
 
     const updatedSession = await prisma.session.update({
         where: { id: sessionId },
