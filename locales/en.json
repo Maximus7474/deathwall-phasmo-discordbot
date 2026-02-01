@@ -164,7 +164,7 @@
                     "activeround": "You have an active round, use `/session round end` to determine the final outcome of it.",
                     "embed": {
                         "title": "Session has ended",
-                        "description": "This session concluded in a {state}.\nScore: {score}",
+                        "description": "This session concluded in a {state}.\nScore: {score}\nRounds: {successfulrounds}/{totalrounds}",
                         "members": "Members",
                         "lead": ":cook: {mention}",
                         "member": "{mention}"
