@@ -211,69 +211,6 @@ type EndRoundResponse = {
     embed: EmbedBuilder;
 };
 
-async function checkEndCondition(sessionId: string): Promise<EndRoundResponse> {
-    const { endsession: responseLocale, generic: genericResponse } = commandLocales.response;
-
-    const session = (await prisma.session.findFirst({
-        where: {
-            id: sessionId,
-        },
-        select: {
-            id: true,
-            goal: true,
-            members: true,
-            rounds: true,
-        },
-    }))!;
-    
-    const roundsWon = session.rounds.filter(r => r.won).length;
-
-    if (roundsWon < session.goal && roundsWon === session.rounds.length) return { finished: false };
-
-    const sessionWin = roundsWon === session.goal;
-
-    const embed = new EmbedBuilder()
-        .setTitle(responseLocale.embed.title)
-        .setColor(sessionWin
-            ? 'Green'
-            : 'Blue'
-        )
-        .setDescription(
-            responseLocale.embed.description
-                .replace('{state}', sessionWin
-                    ? genericResponse.win
-                    : genericResponse.loss
-                )
-                .replace('{score}', `${roundsWon}/${session.goal}`)
-        )
-        .setFields({
-            name: responseLocale.embed.members,
-            value: session.members
-                .map(m => 
-                    `* ${responseLocale.embed[m.isLeader ? 'lead' : 'member']
-                    .replace('{mention}', `<@${m.userId}>`)}`
-                )
-                .join('\n'),
-            inline: true
-        });
-
-    await prisma.session.update({
-        data: {
-            finished: true,
-            finishedAt: new Date(),
-        },
-        where: {
-            id: session.id,
-        }
-    });
-    
-    return {
-        finished: true,
-        win: sessionWin,
-        embed,
-    };
-}
-
 async function calculateSessionScore(sessionId: string) {
     const session = await prisma.session.findUnique({
         where: { id: sessionId },
@@ -305,7 +242,6 @@ async function calculateSessionScore(sessionId: string) {
     const isGoalReached = successfulCount >= session.goal;
     const completionMultiplier = isGoalReached ? 2.0 : 1.0;
 
-
     const totalRoundsPlayed = session.rounds.length || 1;
     const efficiencyRate = successfulCount / totalRoundsPlayed;
 
@@ -327,6 +263,73 @@ async function calculateSessionScore(sessionId: string) {
         successfulRounds: updatedSession.successfulRounds,
         totalRounds: totalRoundsPlayed,
         goalReached: isGoalReached
+    };
+}
+
+async function checkEndCondition(sessionId: string): Promise<EndRoundResponse> {
+    const { endsession: responseLocale, generic: genericResponse } = commandLocales.response;
+
+    const session = (await prisma.session.findFirst({
+        where: {
+            id: sessionId,
+        },
+        select: {
+            id: true,
+            goal: true,
+            members: true,
+            rounds: true,
+        },
+    }))!;
+    
+    const roundsWon = session.rounds.filter(r => r.won).length;
+
+    if (roundsWon < session.goal && roundsWon === session.rounds.length) return { finished: false };
+
+    const scoring = await calculateSessionScore(sessionId);
+
+    const sessionWin = scoring.goalReached;
+
+    const embed = new EmbedBuilder()
+        .setTitle(responseLocale.embed.title)
+        .setColor(sessionWin
+            ? 'Green'
+            : 'Blue'
+        )
+        .setDescription(
+            responseLocale.embed.description
+                .replace('{state}', sessionWin
+                    ? genericResponse.win
+                    : genericResponse.loss
+                )
+                .replace('{score}', `${scoring.finalScore}`)
+                .replace('{successfulrounds}', `${scoring.successfulRounds}`)
+                .replace('{totalrounds}', `${scoring.totalRounds}`)
+        )
+        .setFields({
+            name: responseLocale.embed.members,
+            value: session.members
+                .map(m => 
+                    `* ${responseLocale.embed[m.isLeader ? 'lead' : 'member']
+                    .replace('{mention}', `<@${m.userId}>`)}`
+                )
+                .join('\n'),
+            inline: true
+        });
+
+    await prisma.session.update({
+        data: {
+            finished: true,
+            finishedAt: new Date(),
+        },
+        where: {
+            id: session.id,
+        }
+    });
+    
+    return {
+        finished: true,
+        win: sessionWin,
+        embed,
     };
 }
 
